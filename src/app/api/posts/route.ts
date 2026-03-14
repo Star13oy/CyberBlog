@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// 生成唯一 ID
+function generateId(): string {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+}
+
 // 获取文章列表
 export async function GET(request: NextRequest) {
   try {
@@ -28,22 +33,29 @@ export async function GET(request: NextRequest) {
     }
 
     // 查询文章
-    const [posts, total] = await Promise.all([
-      prisma.post.findMany({
+    const [postsData, total] = await Promise.all([
+      prisma.posts.findMany({
         where,
         skip,
         take: pageSize,
         orderBy: { createdAt: 'desc' },
         include: {
-          author: {
+          users: {
             select: { id: true, username: true, name: true, avatar: true },
           },
-          category: true,
+          categories: true,
           tags: true,
         },
       }),
-      prisma.post.count({ where }),
+      prisma.posts.count({ where }),
     ])
+
+    // Transform to match expected format
+    const posts = postsData.map(post => ({
+      ...post,
+      author: post.users,
+      category: post.categories,
+    }))
 
     return NextResponse.json({
       success: true,
@@ -78,8 +90,9 @@ export async function POST(request: NextRequest) {
       .replace(/^-|-$/g, '')
 
     // 创建文章
-    const post = await prisma.post.create({
+    const postData = await prisma.posts.create({
       data: {
+        id: generateId(),
         title,
         slug,
         content,
@@ -88,11 +101,13 @@ export async function POST(request: NextRequest) {
         authorId: authorId || 'default-user',
         status: status || 'DRAFT',
         publishedAt: status === 'PUBLISHED' ? new Date() : null,
+        updatedAt: new Date(),
         tags: tags
           ? {
               connectOrCreate: tags.map((tag: string) => ({
                 where: { name: tag },
                 create: {
+                  id: generateId(),
                   name: tag,
                   slug: tag.toLowerCase().replace(/\s+/g, '-'),
                 },
@@ -101,10 +116,20 @@ export async function POST(request: NextRequest) {
           : undefined,
       },
       include: {
-        category: true,
+        users: {
+          select: { id: true, username: true, name: true, avatar: true },
+        },
+        categories: true,
         tags: true,
       },
     })
+
+    // Transform to match expected format
+    const post = {
+      ...postData,
+      author: postData.users,
+      category: postData.categories,
+    }
 
     return NextResponse.json({
       success: true,
@@ -113,8 +138,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('创建文章错误:', error)
+    const errorMessage = error instanceof Error ? error.message : '创建文章失败'
     return NextResponse.json(
-      { success: false, error: '创建文章失败' },
+      { success: false, error: errorMessage, details: error },
       { status: 500 }
     )
   }

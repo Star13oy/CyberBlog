@@ -13,14 +13,19 @@ export async function POST(request: NextRequest) {
     // 验证输入
     const validatedData = loginSchema.parse(body)
 
-    // 查找用户
-    const user = await prisma.user.findUnique({
-      where: { email: validatedData.email },
+    // 查找用户（支持用户名或邮箱登录）
+    const user = await prisma.users.findFirst({
+      where: {
+        OR: [
+          { email: validatedData.username },
+          { username: validatedData.username },
+        ],
+      },
     })
 
     if (!user) {
       return NextResponse.json(
-        { success: false, error: '邮箱或密码错误' },
+        { success: false, error: '用户名或密码错误' },
         { status: 401 }
       )
     }
@@ -30,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     if (!isValid) {
       return NextResponse.json(
-        { success: false, error: '邮箱或密码错误' },
+        { success: false, error: '用户名或密码错误' },
         { status: 401 }
       )
     }

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// 生成唯一 ID
+function generateId(): string {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+}
+
 // 获取文章详情
 export async function GET(
   request: NextRequest,
@@ -9,23 +14,23 @@ export async function GET(
   try {
     const { slug } = await params
 
-    const post = await prisma.post.findUnique({
+    const postData = await prisma.posts.findUnique({
       where: { slug },
       include: {
-        author: {
+        users: {
           select: { id: true, username: true, name: true, avatar: true },
         },
-        category: true,
+        categories: true,
         tags: true,
         comments: {
           where: { parentId: null },
           include: {
-            author: {
+            users: {
               select: { id: true, username: true, name: true, avatar: true },
             },
-            replies: {
+            other_comments: {
               include: {
-                author: {
+                users: {
                   select: { id: true, username: true, name: true, avatar: true },
                 },
               },
@@ -36,15 +41,30 @@ export async function GET(
       },
     })
 
-    if (!post) {
+    if (!postData) {
       return NextResponse.json(
         { success: false, error: '文章不存在' },
         { status: 404 }
       )
     }
 
+    // Transform to match expected format
+    const post = {
+      ...postData,
+      author: postData.users,
+      category: postData.categories,
+      comments: postData.comments.map(comment => ({
+        ...comment,
+        author: comment.users,
+        replies: comment.other_comments.map(reply => ({
+          ...reply,
+          author: reply.users,
+        })),
+      })),
+    }
+
     // 增加阅读量
-    await prisma.post.update({
+    await prisma.posts.update({
       where: { id: post.id },
       data: { viewCount: { increment: 1 } },
     })
@@ -72,7 +92,7 @@ export async function PUT(
     const body = await request.json()
     const { title, content, excerpt, categoryId, tags, status } = body
 
-    const post = await prisma.post.update({
+    const postData = await prisma.posts.update({
       where: { slug },
       data: {
         title,
@@ -87,6 +107,7 @@ export async function PUT(
               connectOrCreate: tags.map((tag: string) => ({
                 where: { name: tag },
                 create: {
+                  id: generateId(),
                   name: tag,
                   slug: tag.toLowerCase().replace(/\s+/g, '-'),
                 },
@@ -95,10 +116,17 @@ export async function PUT(
           : undefined,
       },
       include: {
-        category: true,
+        categories: true,
         tags: true,
       },
     })
+
+    // Transform to match expected format
+    const post = {
+      ...postData,
+      author: postData.users,
+      category: postData.categories,
+    }
 
     return NextResponse.json({
       success: true,
@@ -107,8 +135,9 @@ export async function PUT(
     })
   } catch (error) {
     console.error('更新文章错误:', error)
+    const errorMessage = error instanceof Error ? error.message : '更新文章失败'
     return NextResponse.json(
-      { success: false, error: '更新文章失败' },
+      { success: false, error: errorMessage, details: error },
       { status: 500 }
     )
   }
@@ -123,7 +152,7 @@ export async function DELETE(
     const { slug } = await params
 
     // 安全操作：将文章状态改为 ARCHIVED 而不是真正删除
-    const post = await prisma.post.update({
+    await prisma.posts.update({
       where: { slug },
       data: { status: 'ARCHIVED' },
     })

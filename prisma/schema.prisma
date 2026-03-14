@@ -1,7 +1,3 @@
-// Prisma Schema for CyberBlog
-// 数据库: MySQL
-// 注意: 所有危险操作需要谨慎！
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,231 +7,177 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==================== 用户相关 ====================
+model categories {
+  id          String   @id
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  posts       posts[]
 
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  username      String    @unique
-  password      String    // bcrypt 加密
-  name          String?
-  avatar        String?
-  role          Role      @default(USER)
-  status        Status    @default(ACTIVE)
+  @@index([slug])
+}
 
-  // 关联
-  posts         Post[]
-  dailyLogs     DailyLog[]
-  comments      Comment[]
+model comments {
+  id             String     @id
+  content        String     @db.Text
+  postId         String
+  authorId       String
+  parentId       String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime
+  users          users      @relation(fields: [authorId], references: [id])
+  comments       comments?  @relation("commentsTocomments", fields: [parentId], references: [id], onDelete: Cascade)
+  other_comments comments[] @relation("commentsTocomments")
+  posts          posts      @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  @@index([authorId], map: "comments_authorId_fkey")
+  @@index([parentId], map: "comments_parentId_fkey")
+  @@index([postId])
+}
+
+model daily_logs {
+  id          String   @id
+  date        DateTime @db.Date
+  title       String?
+  content     String   @db.Text
+  aiGenerated Boolean  @default(false)
+  authorId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  users       users    @relation(fields: [authorId], references: [id])
+  tasks       tasks[]
+
+  @@unique([date, authorId])
+  @@index([authorId], map: "daily_logs_authorId_fkey")
+  @@index([date])
+}
+
+model posts {
+  id           String       @id
+  title        String       @db.VarChar(200)
+  slug         String       @unique
+  content      String       @db.LongText
+  excerpt      String?      @db.VarChar(500)
+  coverImage   String?
+  categoryId   String?
+  viewCount    Int          @default(0)
+  likeCount    Int          @default(0)
+  commentCount Int          @default(0)
+  status       posts_status @default(DRAFT)
+  isFeatured   Boolean      @default(false)
+  publishedAt  DateTime?
+  aiGenerated  Boolean      @default(false)
+  aiSummary    String?      @db.Text
+  authorId     String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  comments     comments[]
+  users        users        @relation(fields: [authorId], references: [id])
+  categories   categories?  @relation(fields: [categoryId], references: [id])
+  tags         tags[]       @relation("posttotag")
+
+  @@index([authorId], map: "posts_authorId_fkey")
+  @@index([categoryId])
+  @@index([publishedAt])
+  @@index([slug])
+  @@index([status])
+}
+
+model settings {
+  id          String   @id
+  key         String   @unique
+  value       String   @db.Text
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+
+  @@index([key])
+}
+
+model statistics {
+  id          String   @id
+  date        DateTime @unique @db.Date
+  postCount   Int      @default(0)
+  viewCount   Int      @default(0)
+  taskTotal   Int      @default(0)
+  taskDone    Int      @default(0)
+  commitCount Int      @default(0)
+  codeLines   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([date])
+}
+
+model tags {
+  id        String   @id
+  name      String   @unique
+  slug      String   @unique
+  color     String?
+  createdAt DateTime @default(now())
+  posts     posts[]  @relation("posttotag")
+
+  @@index([slug])
+}
+
+model tasks {
+  id          String       @id
+  title       String
+  description String?
+  status      tasks_status @default(TODO)
+  progress    Int          @default(0)
+  dailyLogId  String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime
+  daily_logs  daily_logs   @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+
+  @@index([dailyLogId], map: "tasks_dailyLogId_fkey")
+  @@index([status])
+}
+
+model users {
+  id         String       @id
+  email      String       @unique
+  username   String       @unique
+  password   String
+  name       String?
+  avatar     String?
+  role       users_role   @default(USER)
+  status     users_status @default(ACTIVE)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime
+  comments   comments[]
+  daily_logs daily_logs[]
+  posts      posts[]
 
   @@index([email])
   @@index([username])
-  @@map("users")
 }
 
-enum Role {
-  USER
-  ADMIN
-  AI_AGENT
-}
-
-enum Status {
-  ACTIVE
-  INACTIVE
-  BANNED
-}
-
-// ==================== 文章相关 ====================
-
-model Post {
-  id            String      @id @default(cuid())
-  title         String      @db.VarChar(200)
-  slug          String      @unique
-  content       String      @db.LongText
-  excerpt       String?     @db.VarChar(500)
-  coverImage    String?
-
-  // 分类和标签
-  categoryId    String?
-  category      Category?   @relation(fields: [categoryId], references: [id])
-  tags          Tag[]
-
-  // 统计
-  viewCount     Int         @default(0)
-  likeCount     Int         @default(0)
-  commentCount  Int         @default(0)
-
-  // 状态
-  status        PostStatus  @default(DRAFT)
-  isFeatured    Boolean     @default(false)
-  publishedAt   DateTime?
-
-  // AI 相关
-  aiGenerated   Boolean     @default(false)
-  aiSummary     String?     @db.Text
-
-  // 关联
-  authorId      String
-  author        User        @relation(fields: [authorId], references: [id])
-  comments      Comment[]
-
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  @@index([slug])
-  @@index([categoryId])
-  @@index([status])
-  @@index([publishedAt])
-  @@map("posts")
-}
-
-enum PostStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
-}
-
-model Category {
-  id            String      @id @default(cuid())
-  name          String      @unique
-  slug          String      @unique
-  description   String?
-  icon          String?
-  color         String?     // 赛博朋克配色
-
-  posts         Post[]
-
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  @@index([slug])
-  @@map("categories")
-}
-
-model Tag {
-  id            String      @id @default(cuid())
-  name          String      @unique
-  slug          String      @unique
-  color         String?     // 霓虹色
-
-  posts         Post[]
-
-  createdAt     DateTime    @default(now())
-
-  @@index([slug])
-  @@map("tags")
-}
-
-model Comment {
-  id            String      @id @default(cuid())
-  content       String      @db.Text
-
-  postId        String
-  post          Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  authorId      String
-  author        User        @relation(fields: [authorId], references: [id])
-
-  parentId      String?
-  parent        Comment?    @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies       Comment[]   @relation("CommentReplies")
-
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-
-  @@index([postId])
-  @@map("comments")
-}
-
-// ==================== 日报相关 ====================
-
-model DailyLog {
-  id            String        @id @default(cuid())
-  date          DateTime      @db.Date
-  title         String?
-  content       String        @db.Text
-
-  // AI 生成
-  aiGenerated   Boolean       @default(false)
-
-  // 任务列表
-  tasks         Task[]
-
-  // 关联
-  authorId      String
-  author        User          @relation(fields: [authorId], references: [id])
-
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
-  @@unique([date, authorId])
-  @@index([date])
-  @@map("daily_logs")
-}
-
-model Task {
-  id            String        @id @default(cuid())
-  title         String
-  description   String?
-  status        TaskStatus    @default(TODO)
-  progress      Int           @default(0) // 0-100
-
-  dailyLogId    String
-  dailyLog      DailyLog      @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
-
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
-  @@index([status])
-  @@map("tasks")
-}
-
-enum TaskStatus {
+enum tasks_status {
   TODO
   IN_PROGRESS
   DONE
   CANCELLED
 }
 
-// ==================== 统计相关 ====================
-
-model Statistic {
-  id            String      @id @default(cuid())
-  date          DateTime    @db.Date
-
-  // 文章统计
-  postCount     Int         @default(0)
-  viewCount     Int         @default(0)
-
-  // 任务统计
-  taskTotal     Int         @default(0)
-  taskDone      Int         @default(0)
-
-  // 代码统计
-  commitCount   Int         @default(0)
-  codeLines     Int         @default(0)
-
-  createdAt     DateTime    @default(now())
-
-  @@unique([date])
-  @@index([date])
-  @@map("statistics")
+enum users_role {
+  USER
+  ADMIN
+  AI_AGENT
 }
 
-// ==================== 系统设置 ====================
+enum users_status {
+  ACTIVE
+  INACTIVE
+  BANNED
+}
 
-model Setting {
-  id          String    @id @default(cuid())
-  key         String    @unique
-  value       String    @db.Text
-  description String?
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([key])
-  @@map("settings")
+enum posts_status {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }

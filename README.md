@@ -126,6 +126,166 @@ CyberBlog2.0/
 - 数据库危险操作谨慎
 - 代码规范严格
 
+## 部署指南
+
+### 方式一：Vercel 部署（推荐）
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/cyberblog)
+
+1. Fork 本仓库
+2. 在 Vercel 中导入项目
+3. 配置环境变量
+4. 部署完成
+
+### 方式二：Docker 部署
+
+#### 使用 Docker Compose（完整栈）
+
+```bash
+# 构建并启动
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# 查看日志
+docker-compose -f docker-compose.prod.yml logs -f
+```
+
+#### 单独构建镜像
+
+```bash
+# 构建镜像
+docker build -t cyberblog:latest .
+
+# 运行容器
+docker run -d \
+  --name cyberblog \
+  -p 3000:3000 \
+  -e DATABASE_URL="mysql://root:password@host:3306/cyberblog" \
+  -e NEXTAUTH_SECRET="your-secret" \
+  -e JWT_SECRET="your-jwt-secret" \
+  cyberblog:latest
+```
+
+### 方式三：传统服务器部署
+
+#### 1. 环境准备
+
+```bash
+# 安装 Node.js 18+
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# 安装 PM2
+npm install -g pm2
+
+# 安装 MySQL
+sudo apt-get install mysql-server
+```
+
+#### 2. 构建项目
+
+```bash
+# 安装依赖
+npm ci --production
+
+# 生成 Prisma Client
+npm run db:generate
+
+# 构建项目
+npm run build
+```
+
+#### 3. 启动服务
+
+```bash
+# 使用 PM2 启动
+pm2 start npm --name "cyberblog" -- start
+
+# 设置开机自启
+pm2 startup
+pm2 save
+```
+
+### 生产环境变量配置
+
+创建 `.env.production` 文件：
+
+```env
+# 数据库
+DATABASE_URL="mysql://user:password@host:3306/cyberblog?sslaccept=strict"
+
+# 认证
+NEXTAUTH_SECRET="your-secure-random-string-at-least-32-chars"
+NEXTAUTH_URL="https://your-domain.com"
+JWT_SECRET="another-secure-random-string"
+
+# AI 功能（可选）
+ANTHROPIC_API_KEY="your-claude-api-key"
+
+# 其他
+NODE_ENV="production"
+```
+
+### Nginx 反向代理配置
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+## MCP 服务器配置
+
+本项目集成了 MCP (Model Context Protocol) 服务器，用于 AI 助手连接项目上下文。
+
+### 启用 MCP
+
+在 Claude Code 中配置 `.mcp.json`：
+
+```json
+{
+  "mcpServers": {
+    "cyberblog": {
+      "command": "node",
+      "args": ["./.mcp/server.mjs"],
+      "env": {
+        "PROJECT_ROOT": "."
+      }
+    }
+  }
+}
+```
+
+### MCP 提供的功能
+
+| 工具名称 | 功能描述 |
+|---------|---------|
+| `get_project_info` | 获取项目基本信息 |
+| `get_api_endpoints` | 获取所有 API 端点列表 |
+| `get_db_models` | 获取数据库模型信息 |
+| `get_dev_server_status` | 检查开发服务器状态 |
+
 ## License
 
 MIT

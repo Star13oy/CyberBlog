@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
     const validatedData = registerSchema.parse(body)
 
     // 检查用户是否已存在
-    const existingUser = await prisma.user.findFirst({
+    const existingUser = await prisma.users.findFirst({
       where: {
         OR: [
           { email: validatedData.email },
@@ -31,8 +31,9 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(validatedData.password)
 
     // 创建用户
-    const user = await prisma.user.create({
+    const user = await prisma.users.create({
       data: {
+        id: `user-${Date.now()}`,
         email: validatedData.email,
         username: validatedData.username,
         password: hashedPassword,

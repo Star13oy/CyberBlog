@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "cyberblog": {
+      "command": "node",
+      "args": ["D:/AICode/ClaudeCode/CyberBlog2.0/.mcp/server.mjs"],
+      "env": {
+        "PROJECT_ROOT": "D:/AICode/ClaudeCode/CyberBlog2.0"
+      }
+    }
+  }
+}

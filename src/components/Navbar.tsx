@@ -1,62 +1,124 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { useTheme } from '@/contexts/ThemeContext'
+
+interface User {
+  id: string
+  username: string
+  name: string | null
+  role: string
+}
 
 export default function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const { theme, toggleTheme } = useTheme()
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/auth/me')
+        const data = await res.json()
+        if (data.success) {
+          setUser(data.data)
+        }
+      } catch {
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    }
+    checkAuth()
+  }, [])
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      setUser(null)
+      router.push('/')
+    } catch {
+      console.error('Logout failed')
+    }
+  }
 
   const isActive = (path: string) => {
     if (path === '/') return pathname === '/'
     return pathname.startsWith(path)
   }
 
-  return (
-    <nav className="fixed top-0 left-0 right-0 h-[72px] flex justify-between items-center px-10 bg-[rgba(5,10,18,0.95)] border-b border-[rgba(0,212,255,0.3)] backdrop-blur-xl z-50">
-      {/* HUD 装饰线 */}
-      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00d4ff] to-transparent" style={{ boxShadow: '0 0 10px #00d4ff' }} />
+  const navLinkClass = (path: string) => {
+    const baseClass = 'px-4 py-2 text-sm rounded-lg transition-all duration-300 font-medium'
+    if (isActive(path)) {
+      return `${baseClass} nav-link-active`
+    }
+    return `${baseClass} nav-link`
+  }
 
-      {/* Logo - 霓虹效果 */}
-      <Link href="/" className="flex items-center gap-3 text-xl font-bold group">
-        <div className="w-11 h-11 rounded-lg bg-[rgba(0,10,20,0.8)] border border-[#00d4ff] flex items-center justify-center text-2xl" style={{ boxShadow: '0 0 15px rgba(0,212,255,0.4), inset 0 0 15px rgba(0,212,255,0.1)' }}>
+  return (
+    <nav className="navbar">
+      {/* HUD 装饰线 */}
+      <div className="navbar-glow" />
+
+      {/* Logo */}
+      <Link href="/" className="navbar-logo">
+        <div className="navbar-logo-icon">
           🤖
         </div>
-        <span>
-          <span className="neon-title-cyber">Cyber</span>
-          <span className="neon-title-blog ml-1">Blog</span>
+        <span className="navbar-logo-text">
+          <span className="logo-cyber">Cyber</span>
+          <span className="logo-blog">Blog</span>
         </span>
       </Link>
 
-      {/* 导航链接 - HUD 风格 */}
-      <div className="flex gap-1">
-        <Link href="/" className={`px-4 py-2 text-sm rounded transition-all ${isActive('/') ? 'neon-btn' : 'text-[#607080] border border-transparent hover:border-[rgba(0,212,255,0.3)] hover:text-[#00d4ff]'}`}>
-          首页
-        </Link>
-        <Link href="/blog" className={`px-4 py-2 text-sm rounded transition-all ${isActive('/blog') ? 'neon-btn' : 'text-[#607080] border border-transparent hover:border-[rgba(0,212,255,0.3)] hover:text-[#00d4ff]'}`}>
-          博客
-        </Link>
-        <Link href="/daily" className={`px-4 py-2 text-sm rounded transition-all ${isActive('/daily') ? 'neon-btn' : 'text-[#607080] border border-transparent hover:border-[rgba(0,212,255,0.3)] hover:text-[#00d4ff]'}`}>
-          日报
-        </Link>
-        <Link href="/stats" className={`px-4 py-2 text-sm rounded transition-all ${isActive('/stats') ? 'neon-btn' : 'text-[#607080] border border-transparent hover:border-[rgba(0,212,255,0.3)] hover:text-[#00d4ff]'}`}>
-          统计
-        </Link>
-        <Link href="/about" className={`px-4 py-2 text-sm rounded transition-all ${isActive('/about') ? 'neon-btn' : 'text-[#607080] border border-transparent hover:border-[rgba(0,212,255,0.3)] hover:text-[#00d4ff]'}`}>
-          关于
-        </Link>
+      {/* 导航链接 */}
+      <div className="navbar-links">
+        <Link href="/" className={navLinkClass('/')}>首页</Link>
+        <Link href="/blog" className={navLinkClass('/blog')}>博客</Link>
+        <Link href="/daily" className={navLinkClass('/daily')}>日报</Link>
+        <Link href="/dashboard" className={navLinkClass('/dashboard')}>统计</Link>
+        <Link href="/about" className={navLinkClass('/about')}>关于</Link>
       </div>
 
-      {/* 搜索和按钮 */}
-      <div className="flex items-center gap-4">
+      {/* 右侧操作区 */}
+      <div className="navbar-actions">
         <input
           type="text"
           placeholder="搜索..."
-          className="w-[180px] px-4 py-2 bg-[rgba(0,10,20,0.8)] border border-[rgba(0,212,255,0.3)] rounded text-sm text-[#00d4ff] placeholder-[#405060] focus:outline-none focus:border-[#00d4ff] transition-all font-mono"
-          style={{ boxShadow: 'inset 0 0 10px rgba(0,212,255,0.1)' }}
+          className="navbar-search"
         />
-        <button className="neon-btn px-5 py-2 rounded font-semibold text-sm">
-          + 新建文章
+
+        {/* 主题切换 */}
+        <button
+          onClick={toggleTheme}
+          className="theme-toggle"
+          title={theme === 'dark' ? '切换到日间模式' : '切换到夜间模式'}
+        >
+          <span className="theme-icon">{theme === 'dark' ? '☀️' : '🌙'}</span>
         </button>
+
+        {user ? (
+          <>
+            <Link href="/blog/new" className="nav-btn-primary">
+              + 新建文章
+            </Link>
+            <div className="user-info">
+              <span className="user-name">{user.name || user.username}</span>
+              <button onClick={handleLogout} className="logout-btn">
+                退出
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <Link href="/login" className="nav-link-text">登录</Link>
+            <Link href="/register" className="nav-btn-primary">注册</Link>
+          </>
+        )}
       </div>
     </nav>
   )
