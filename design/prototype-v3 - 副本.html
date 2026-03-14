@@ -1,0 +1,1941 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberBlog - AI Agent 开发日志系统</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============ BASE ============ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary: #00d4ff;
+  --primary-light: #4de8ff;
+  --primary-dark: #00a8cc;
+  --accent: #bf5af2;
+  --accent-light: #d17df7;
+  --success: #30d158;
+  --warning: #ffd60a;
+  --danger: #ff453a;
+
+  --bg-dark: #080c14;
+  --bg-card: rgba(13, 20, 35, 0.85);
+  --bg-card-hover: rgba(20, 30, 50, 0.9);
+  --bg-elevated: rgba(18, 28, 48, 0.8);
+
+  --text-primary: #f0f4f8;
+  --text-secondary: #a8b8c8;
+  --text-muted: #607080;
+  --text-light: #d0dce8;
+
+  --border-color: rgba(0, 212, 255, 0.15);
+  --border-glow: rgba(0, 212, 255, 0.4);
+
+  --glow-primary: 0 0 25px rgba(0, 212, 255, 0.35), 0 0 50px rgba(0, 212, 255, 0.15);
+  --glow-accent: 0 0 25px rgba(191, 90, 242, 0.35), 0 0 50px rgba(191, 90, 242, 0.15);
+  --glow-success: 0 0 20px rgba(48, 209, 88, 0.4);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ============ BACKGROUND ============ */
+.bg-pattern {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(0, 212, 255, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(191, 90, 242, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 212, 255, 0.03) 0%, transparent 70%);
+}
+
+.grid-lines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(0, 212, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  animation: gridPulse 8s ease-in-out infinite;
+}
+
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Floating particles */
+.particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 50%;
+  opacity: 0;
+  animation: floatUp 20s infinite;
+  box-shadow: 0 0 6px var(--primary), 0 0 12px var(--primary);
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% { transform: translateY(-100px) translateX(100px); opacity: 0; }
+}
+
+/* ============ NAVBAR ============ */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  background: rgba(8, 12, 20, 0.92);
+  border-bottom: 1px solid var(--border-color);
+  backdrop-filter: blur(20px);
+  z-index: 1000;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
+nav::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  opacity: 0.5;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.logo:hover {
+  transform: scale(1.02);
+}
+
+.logo-icon {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.4), 0 0 40px rgba(191, 90, 242, 0.2);
+  animation: logoGlow 3s ease-in-out infinite;
+}
+
+@keyframes logoGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.4), 0 0 40px rgba(191, 90, 242, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(0, 212, 255, 0.6), 0 0 60px rgba(191, 90, 242, 0.4); }
+}
+
+.logo-text span {
+  background: linear-gradient(135deg, var(--primary), var(--accent-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+}
+
+.nav-links {
+  display: flex;
+  gap: 6px;
+}
+
+.nav-link {
+  padding: 10px 18px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  position: relative;
+}
+
+.nav-link:hover {
+  color: var(--primary);
+  background: rgba(0, 212, 255, 0.08);
+}
+
+.nav-link.active {
+  color: var(--primary);
+  background: rgba(0, 212, 255, 0.12);
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 1px;
+  box-shadow: 0 0 10px var(--primary);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.search-wrapper {
+  position: relative;
+}
+
+.search-input {
+  width: 240px;
+  padding: 11px 16px 11px 44px;
+  background: rgba(13, 20, 35, 0.8);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.2), inset 0 0 20px rgba(0, 212, 255, 0.05);
+  background: rgba(13, 20, 35, 0.95);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 16px;
+  transition: var(--transition);
+}
+
+.search-input:focus + .search-icon {
+  color: var(--primary);
+}
+
+.btn {
+  padding: 11px 22px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: var(--bg-dark);
+  font-weight: 600;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.5), 0 4px 20px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.btn-ghost:hover {
+  background: rgba(0, 212, 255, 0.08);
+  color: var(--primary);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+/* ============ MAIN LAYOUT ============ */
+.main-layout {
+  display: flex;
+  margin-top: 72px;
+  min-height: calc(100vh - 72px);
+}
+
+/* ============ SIDEBAR ============ */
+.sidebar {
+  width: 290px;
+  padding: 30px 20px;
+  background: rgba(8, 12, 20, 0.7);
+  border-right: 1px solid var(--border-color);
+  position: fixed;
+  top: 72px;
+  bottom: 0;
+  left: 0;
+  overflow-y: auto;
+  backdrop-filter: blur(10px);
+}
+
+.sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent, var(--primary), transparent);
+  opacity: 0.3;
+}
+
+.sidebar-section {
+  margin-bottom: 32px;
+}
+
+.sidebar-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+/* Agent Card */
+.agent-card {
+  padding: 22px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.agent-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+  background-size: 200% 100%;
+  animation: gradientMove 3s linear infinite;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+
+.agent-card:hover {
+  border-color: rgba(0, 212, 255, 0.4);
+  box-shadow: var(--glow-primary);
+}
+
+.agent-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 18px;
+}
+
+.agent-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+.agent-info h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 5px;
+}
+
+.agent-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--success);
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 10px var(--success);
+  animation: statusPulse 2s infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--success); }
+  50% { opacity: 0.6; box-shadow: 0 0 20px var(--success); }
+}
+
+.agent-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border-color);
+}
+
+.agent-stat {
+  text-align: center;
+  padding: 12px 8px;
+  background: rgba(0, 212, 255, 0.05);
+  border-radius: var(--radius-sm);
+}
+
+.agent-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+  font-family: 'JetBrains Mono', monospace;
+  text-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+}
+
+.agent-stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* Category List */
+.category-list {
+  list-style: none;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  margin-bottom: 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+}
+
+.category-item:hover {
+  background: rgba(0, 212, 255, 0.08);
+  color: var(--text-primary);
+  border-color: rgba(0, 212, 255, 0.1);
+}
+
+.category-item.active {
+  background: rgba(0, 212, 255, 0.12);
+  color: var(--primary);
+  border-color: rgba(0, 212, 255, 0.25);
+  box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.05);
+}
+
+.category-item .icon {
+  margin-right: 12px;
+  font-size: 16px;
+}
+
+.category-item .count {
+  font-size: 12px;
+  background: rgba(0, 212, 255, 0.1);
+  padding: 3px 10px;
+  border-radius: 12px;
+  color: var(--text-muted);
+}
+
+.category-item.active .count {
+  background: rgba(0, 212, 255, 0.2);
+  color: var(--primary);
+}
+
+/* Tags */
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag {
+  padding: 7px 16px;
+  background: rgba(191, 90, 242, 0.08);
+  border: 1px solid rgba(191, 90, 242, 0.25);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.tag:hover {
+  background: rgba(191, 90, 242, 0.15);
+  border-color: var(--accent);
+  color: var(--accent-light);
+  box-shadow: 0 0 15px rgba(191, 90, 242, 0.3);
+}
+
+/* ============ CONTENT ============ */
+.content {
+  flex: 1;
+  margin-left: 290px;
+  padding: 45px 55px;
+}
+
+/* ============ HERO ============ */
+.hero {
+  text-align: center;
+  padding: 55px 20px 65px;
+  position: relative;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  border-radius: 25px;
+  font-size: 13px;
+  color: var(--primary);
+  margin-bottom: 28px;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.4), transparent);
+  animation: badgeFlash 3s ease-in-out infinite;
+}
+
+@keyframes badgeFlash {
+  0% { left: -100%; }
+  50%, 100% { left: 100%; }
+}
+
+.hero h1 {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 22px;
+  letter-spacing: -1px;
+  position: relative;
+  display: inline-block;
+}
+
+/* Cyber 主标题霓虹效果 */
+.hero h1::before {
+  content: 'Cyber';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--primary);
+  text-shadow:
+    0 0 5px var(--primary),
+    0 0 10px var(--primary),
+    0 0 20px var(--primary),
+    0 0 40px var(--primary),
+    0 0 80px rgba(0, 212, 255, 0.5);
+  animation: cyanPulse 2s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes cyanPulse {
+  0%, 100% {
+    text-shadow:
+      0 0 5px var(--primary),
+      0 0 10px var(--primary),
+      0 0 20px var(--primary),
+      0 0 40px var(--primary),
+      0 0 80px rgba(0, 212, 255, 0.5);
+    opacity: 1;
+  }
+  50% {
+    text-shadow:
+      0 0 10px var(--primary),
+      0 0 20px var(--primary),
+      0 0 40px var(--primary),
+      0 0 80px var(--primary),
+      0 0 120px rgba(0, 212, 255, 0.6),
+      0 0 160px rgba(0, 212, 255, 0.3);
+    opacity: 0.9;
+  }
+}
+
+.hero h1 span {
+  background: linear-gradient(135deg, var(--primary), var(--accent), var(--primary-light), var(--primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+  background-size: 300% 100%;
+  position: relative;
+  display: inline-block;
+  margin-left: 10px;
+}
+
+/* Blog 多层霓虹光晕 */
+.hero h1 span::before {
+  content: 'Blog';
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: linear-gradient(135deg, var(--primary), var(--accent), var(--primary-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: blur(1px);
+  opacity: 0.8;
+  animation: holographic 4s linear infinite;
+  z-index: -1;
+}
+
+/* 外层光晕 */
+.hero h1 span::after {
+  content: 'Blog';
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: transparent;
+  text-shadow:
+    0 0 10px var(--accent),
+    0 0 30px var(--accent),
+    0 0 60px rgba(191, 90, 242, 0.6),
+    0 0 100px rgba(191, 90, 242, 0.4);
+  animation: magentaBloom 3s ease-in-out infinite;
+  z-index: -2;
+}
+
+@keyframes holographic {
+  0% { filter: blur(1px) hue-rotate(0deg); opacity: 0.8; }
+  25% { filter: blur(1px) hue-rotate(15deg); opacity: 0.9; }
+  50% { filter: blur(1px) hue-rotate(0deg); opacity: 0.8; }
+  75% { filter: blur(1px) hue-rotate(-15deg); opacity: 0.9; }
+  100% { filter: blur(1px) hue-rotate(0deg); opacity: 0.8; }
+}
+
+@keyframes magentaBloom {
+  0%, 100% {
+    text-shadow:
+      0 0 10px var(--accent),
+      0 0 30px var(--accent),
+      0 0 60px rgba(191, 90, 242, 0.6),
+      0 0 100px rgba(191, 90, 242, 0.4);
+  }
+  50% {
+    text-shadow:
+      0 0 15px var(--accent),
+      0 0 40px var(--accent),
+      0 0 80px rgba(191, 90, 242, 0.7),
+      0 0 130px rgba(191, 90, 242, 0.5),
+      0 0 180px rgba(191, 90, 242, 0.3);
+  }
+}
+
+/* 闪光效果 */
+.hero h1::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), rgba(255, 255, 255, 0.5), rgba(191, 90, 242, 0.3), transparent);
+  animation: textFlash 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes textFlash {
+  0% { left: -100%; opacity: 0; }
+  50% { opacity: 1; }
+  100% { left: 200%; opacity: 0; }
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* 标题悬停效果 */
+.hero h1:hover span {
+  animation: glitchText 0.3s ease infinite, shimmer 3s linear infinite;
+}
+
+@keyframes glitchText {
+  0% { transform: translate(0); filter: hue-rotate(0deg); }
+  20% { transform: translate(-2px, 2px); filter: hue-rotate(90deg); }
+  40% { transform: translate(2px, -2px); filter: hue-rotate(180deg); }
+  60% { transform: translate(-2px, -2px); filter: hue-rotate(270deg); }
+  80% { transform: translate(2px, 2px); filter: hue-rotate(360deg); }
+  100% { transform: translate(0); filter: hue-rotate(0deg); }
+}
+
+/* 副标题闪光 */
+.hero p::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  animation: subtitleFlash 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes subtitleFlash {
+  0% { left: -100%; opacity: 0; }
+  50% { opacity: 1; }
+  100% { left: 200%; opacity: 0; }
+}
+
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.btn-large {
+  padding: 15px 32px;
+  font-size: 15px;
+}
+
+/* ============ STATS ============ */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+  margin-bottom: 55px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  text-align: center;
+  transition: var(--transition);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.stat-card:hover {
+  border-color: rgba(0, 212, 255, 0.4);
+  transform: translateY(-5px);
+  box-shadow: var(--glow-primary);
+}
+
+.stat-card:hover::before {
+  opacity: 1;
+}
+
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+  font-size: 24px;
+}
+
+.stat-icon.blue {
+  background: rgba(0, 212, 255, 0.12);
+  color: var(--primary);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+}
+.stat-icon.purple {
+  background: rgba(191, 90, 242, 0.12);
+  color: var(--accent);
+  box-shadow: 0 0 20px rgba(191, 90, 242, 0.2);
+}
+.stat-icon.green {
+  background: rgba(48, 209, 88, 0.12);
+  color: var(--success);
+  box-shadow: 0 0 20px rgba(48, 209, 88, 0.2);
+}
+.stat-icon.yellow {
+  background: rgba(255, 214, 10, 0.12);
+  color: var(--warning);
+  box-shadow: 0 0 20px rgba(255, 214, 10, 0.2);
+}
+
+.stat-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  margin-bottom: 6px;
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ============ SECTION HEADER ============ */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.section-title::before {
+  content: '';
+  width: 4px;
+  height: 28px;
+  background: linear-gradient(180deg, var(--primary), var(--accent));
+  border-radius: 2px;
+  box-shadow: 0 0 15px var(--primary);
+}
+
+.view-all {
+  font-size: 14px;
+  color: var(--primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition);
+}
+
+.view-all:hover {
+  gap: 12px;
+  text-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+}
+
+/* ============ DAILY PROGRESS ============ */
+.daily-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  margin-bottom: 45px;
+  position: relative;
+  overflow: hidden;
+}
+
+.daily-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), var(--accent), transparent);
+}
+
+.daily-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.daily-date {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.daily-date .icon {
+  color: var(--primary);
+  font-size: 18px;
+}
+
+.progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.progress-item {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  border: 1px solid transparent;
+}
+
+.progress-item:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(0, 212, 255, 0.15);
+}
+
+.progress-check {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.progress-check.done {
+  background: rgba(48, 209, 88, 0.15);
+  color: var(--success);
+  border: 1px solid var(--success);
+  box-shadow: 0 0 15px rgba(48, 209, 88, 0.3);
+}
+
+.progress-check.in-progress {
+  background: rgba(255, 214, 10, 0.15);
+  color: var(--warning);
+  border: 1px solid var(--warning);
+  box-shadow: 0 0 15px rgba(255, 214, 10, 0.3);
+}
+
+.progress-check.todo {
+  background: rgba(96, 112, 128, 0.1);
+  color: var(--text-muted);
+  border: 1px solid rgba(96, 112, 128, 0.3);
+}
+
+.progress-content {
+  flex: 1;
+}
+
+.progress-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 5px;
+}
+
+.progress-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.progress-percent {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary);
+  font-family: 'JetBrains Mono', monospace;
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.4);
+}
+
+/* ============ BLOG GRID ============ */
+.blog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+  margin-bottom: 55px;
+}
+
+.blog-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+}
+
+.blog-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  transform: scaleX(0);
+  transition: var(--transition);
+}
+
+.blog-card:hover {
+  border-color: rgba(0, 212, 255, 0.4);
+  transform: translateY(-8px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 212, 255, 0.15);
+}
+
+.blog-card:hover::before {
+  transform: scaleX(1);
+}
+
+.blog-card-header {
+  padding: 28px 28px 22px;
+}
+
+.blog-category {
+  display: inline-block;
+  padding: 5px 14px;
+  background: rgba(191, 90, 242, 0.12);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(191, 90, 242, 0.25);
+}
+
+.blog-title {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  line-height: 1.45;
+  transition: var(--transition);
+}
+
+.blog-card:hover .blog-title {
+  color: var(--primary);
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+.blog-excerpt {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.75;
+}
+
+.blog-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+  background: rgba(0, 212, 255, 0.03);
+  border-top: 1px solid var(--border-color);
+}
+
+.blog-meta {
+  display: flex;
+  gap: 20px;
+}
+
+.blog-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.blog-meta-item .icon {
+  font-size: 14px;
+}
+
+/* ============ TERMINAL ============ */
+.terminal-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 55px;
+  position: relative;
+}
+
+.terminal-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: rgba(0, 212, 255, 0.05);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.terminal-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+}
+
+.terminal-dot.red { background: #ff5f57; box-shadow: 0 0 8px rgba(255, 95, 87, 0.5); }
+.terminal-dot.yellow { background: #febc2e; box-shadow: 0 0 8px rgba(254, 188, 46, 0.5); }
+.terminal-dot.green { background: #28c840; box-shadow: 0 0 8px rgba(40, 200, 64, 0.5); }
+
+.terminal-title {
+  margin-left: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.terminal-body {
+  padding: 22px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  min-height: 190px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.terminal-line {
+  margin-bottom: 8px;
+  line-height: 1.7;
+}
+
+.terminal-prompt {
+  color: var(--success);
+  text-shadow: 0 0 10px rgba(48, 209, 88, 0.5);
+}
+
+.terminal-command {
+  color: var(--primary);
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+.terminal-output {
+  color: var(--text-muted);
+}
+
+.terminal-success {
+  color: var(--success);
+  text-shadow: 0 0 10px rgba(48, 209, 88, 0.4);
+}
+
+.terminal-cursor {
+  display: inline-block;
+  width: 9px;
+  height: 17px;
+  background: var(--primary);
+  animation: cursorBlink 1s infinite;
+  vertical-align: middle;
+  margin-left: 3px;
+  box-shadow: 0 0 10px var(--primary);
+}
+
+@keyframes cursorBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ============ FOOTER ============ */
+footer {
+  margin-left: 290px;
+  padding: 45px 55px;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  position: relative;
+}
+
+footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), var(--accent), transparent);
+}
+
+.footer-content {
+  display: flex;
+  justify-content: center;
+  gap: 45px;
+  margin-bottom: 22px;
+}
+
+.footer-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+.footer-link:hover {
+  color: var(--primary);
+  text-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+}
+
+.copyright {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ============ MODAL ============ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  width: 90%;
+  max-width: 720px;
+  max-height: 85vh;
+  overflow: hidden;
+  animation: slideUp 0.35s ease;
+  box-shadow: 0 0 50px rgba(0, 212, 255, 0.2), 0 25px 50px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(35px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px;
+  border-bottom: 1px solid var(--border-color);
+  position: relative;
+}
+
+.modal-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  width: 38px;
+  height: 38px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  background: rgba(255, 69, 58, 0.1);
+  border-color: var(--danger);
+  color: var(--danger);
+  box-shadow: 0 0 15px rgba(255, 69, 58, 0.3);
+}
+
+.modal-body {
+  padding: 28px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.modal-meta {
+  display: flex;
+  gap: 25px;
+  margin-bottom: 22px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.modal-tags {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.modal-content {
+  line-height: 1.85;
+  color: var(--text-secondary);
+}
+
+.modal-content p {
+  margin-bottom: 18px;
+}
+
+/* ============ TOAST ============ */
+.toast {
+  position: fixed;
+  bottom: 35px;
+  right: 35px;
+  background: var(--bg-card);
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  border-radius: var(--radius-md);
+  padding: 18px 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 3000;
+  transform: translateX(130%);
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.25);
+}
+
+.toast.show {
+  transform: translateX(0);
+}
+
+.toast-icon {
+  font-size: 22px;
+}
+
+.toast-text {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+/* ============ SCROLLBAR ============ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 212, 255, 0.5);
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 1200px) {
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    display: none;
+  }
+
+  .content, footer {
+    margin-left: 0;
+  }
+
+  .blog-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  nav {
+    padding: 0 20px;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .search-input {
+    width: 160px;
+  }
+
+  .hero h1 {
+    font-size: 38px;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .content {
+    padding: 30px 20px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-pattern"></div>
+<div class="grid-lines"></div>
+<div class="particles" id="particles"></div>
+
+<!-- Navigation -->
+<nav>
+  <a href="#" class="logo">
+    <div class="logo-icon">&#129302;</div>
+    <div class="logo-text">Cyber<span>Blog</span></div>
+  </a>
+
+  <div class="nav-links">
+    <a href="#" class="nav-link active">首页</a>
+    <a href="#" class="nav-link">博客文章</a>
+    <a href="#" class="nav-link">每日日报</a>
+    <a href="#" class="nav-link">项目统计</a>
+    <a href="#" class="nav-link">关于系统</a>
+  </div>
+
+  <div class="nav-actions">
+    <div class="search-wrapper">
+      <input type="text" class="search-input" placeholder="搜索文章..." id="searchInput">
+      <span class="search-icon">&#128269;</span>
+    </div>
+    <button class="btn btn-primary">
+      <span>+</span> 新建文章
+    </button>
+  </div>
+</nav>
+
+<div class="main-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">// Agent Status</div>
+      <div class="agent-card">
+        <div class="agent-header">
+          <div class="agent-avatar">&#129302;</div>
+          <div class="agent-info">
+            <h4>Cyber Agent</h4>
+            <div class="agent-status">
+              <span class="status-indicator"></span>
+              运行中
+            </div>
+          </div>
+        </div>
+        <div class="agent-stats">
+          <div class="agent-stat">
+            <div class="agent-stat-value">99.9%</div>
+            <div class="agent-stat-label">在线率</div>
+          </div>
+          <div class="agent-stat">
+            <div class="agent-stat-value">2.3s</div>
+            <div class="agent-stat-label">响应时间</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">// Categories</div>
+      <ul class="category-list">
+        <li class="category-item active" data-category="all">
+          <span><span class="icon">&#128196;</span> 全部文章</span>
+          <span class="count">128</span>
+        </li>
+        <li class="category-item" data-category="frontend">
+          <span><span class="icon">&#127912;</span> 前端开发</span>
+          <span class="count">42</span>
+        </li>
+        <li class="category-item" data-category="backend">
+          <span><span class="icon">&#9881;</span> 后端架构</span>
+          <span class="count">35</span>
+        </li>
+        <li class="category-item" data-category="ai">
+          <span><span class="icon">&#129504;</span> AI / ML</span>
+          <span class="count">28</span>
+        </li>
+        <li class="category-item" data-category="devops">
+          <span><span class="icon">&#128187;</span> DevOps</span>
+          <span class="count">23</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">// Hot Tags</div>
+      <div class="tags-list">
+        <span class="tag">Vue3</span>
+        <span class="tag">React</span>
+        <span class="tag">TypeScript</span>
+        <span class="tag">Node.js</span>
+        <span class="tag">Python</span>
+        <span class="tag">Docker</span>
+        <span class="tag">LLM</span>
+        <span class="tag">RAG</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="content">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-badge">
+        <span>&#128640;</span>
+        AI Agent 自动维护的开发日志系统
+      </div>
+      <h1>Cyber<span>Blog</span></h1>
+      <p>一个由 AI Agent 驱动的技术博客系统，自动记录开发进程、整理技术笔记、生成每日日报</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary btn-large">
+          &#128218; 浏览文章
+        </button>
+        <button class="btn btn-ghost btn-large">
+          &#128260; 了解更多
+        </button>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon blue">&#128196;</div>
+        <div class="stat-value" data-target="128">0</div>
+        <div class="stat-label">文章总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple">&#128736;</div>
+        <div class="stat-value" data-target="47">0</div>
+        <div class="stat-label">项目数量</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">&#128197;</div>
+        <div class="stat-value" data-target="23">0</div>
+        <div class="stat-label">每日日报</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon yellow">&#128187;</div>
+        <div class="stat-value" data-target="156">0</div>
+        <div class="stat-label">代码提交</div>
+      </div>
+    </div>
+
+    <!-- Daily Progress -->
+    <section class="daily-section">
+      <div class="daily-header">
+        <h2 class="section-title">今日进度</h2>
+        <div class="daily-date">
+          <span class="icon">&#128197;</span>
+          <span id="currentDate"></span>
+        </div>
+      </div>
+      <div class="progress-list">
+        <div class="progress-item">
+          <div class="progress-check done">&#10003;</div>
+          <div class="progress-content">
+            <div class="progress-title">完成博客系统架构重构</div>
+            <div class="progress-desc">迁移至 Next.js 15 + TypeScript + Prisma</div>
+          </div>
+          <div class="progress-percent">100%</div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-check done">&#10003;</div>
+          <div class="progress-content">
+            <div class="progress-title">实现 AI Agent 自动发文功能</div>
+            <div class="progress-desc">集成 Claude API，支持自动生成日报</div>
+          </div>
+          <div class="progress-percent">100%</div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-check in-progress">&#9679;</div>
+          <div class="progress-content">
+            <div class="progress-title">前端性能优化</div>
+            <div class="progress-desc">SSR + ISR 混合渲染，首屏加载优化</div>
+          </div>
+          <div class="progress-percent">65%</div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-check todo">&#9675;</div>
+          <div class="progress-content">
+            <div class="progress-title">部署至生产环境</div>
+            <div class="progress-desc">Docker 容器化 + Kubernetes 集群部署</div>
+          </div>
+          <div class="progress-percent">20%</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Terminal -->
+    <section class="terminal-section">
+      <div class="terminal-header">
+        <span class="terminal-dot red"></span>
+        <span class="terminal-dot yellow"></span>
+        <span class="terminal-dot green"></span>
+        <span class="terminal-title">cyber-blog@agent ~ </span>
+      </div>
+      <div class="terminal-body" id="terminal">
+        <div class="terminal-line">
+          <span class="terminal-prompt">$ </span>
+          <span class="terminal-command">npm run build</span>
+        </div>
+        <div class="terminal-line">
+          <span class="terminal-output">&#10003; Compiled successfully in 2.3s</span>
+        </div>
+        <div class="terminal-line">
+          <span class="terminal-output">&#10003; Generating static pages (12/12)</span>
+        </div>
+        <div class="terminal-line">
+          <span class="terminal-success">&#10003; Build completed!</span>
+        </div>
+        <div class="terminal-line">
+          <span class="terminal-prompt">$ </span>
+          <span class="terminal-command" id="typingCommand"></span>
+          <span class="terminal-cursor"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Blog Posts -->
+    <section class="blog-section">
+      <div class="section-header">
+        <h2 class="section-title">最新文章</h2>
+        <a href="#" class="view-all">查看全部 &#8594;</a>
+      </div>
+
+      <div class="blog-grid" id="blogGrid"></div>
+    </section>
+  </main>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-content">
+    <a href="#" class="footer-link">GitHub</a>
+    <a href="#" class="footer-link">API 文档</a>
+    <a href="#" class="footer-link">RSS 订阅</a>
+    <a href="#" class="footer-link">关于我们</a>
+  </div>
+  <p class="copyright">CyberBlog v2.0 | Powered by AI Agent | &copy; 2026</p>
+</footer>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modalTitle">文章标题</h3>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-meta" id="modalMeta"></div>
+      <div class="modal-tags" id="modalTags"></div>
+      <div class="modal-content" id="modalContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-icon">&#128640;</span>
+  <span class="toast-text" id="toastText">操作成功</span>
+</div>
+
+<script>
+// Data
+const blogPosts = [
+  { id: 1, title: 'Vue3 组合式 API 最佳实践指南', excerpt: '深入探讨 Vue3 Composition API 在大型项目中的应用，包括响应式原理、组件设计模式和性能优化策略。', category: 'frontend', date: '2026-03-11', views: 1234, comments: 28, tags: ['Vue3', 'TypeScript', '前端架构'] },
+  { id: 2, title: 'RAG 系统设计与实现详解', excerpt: '从零构建企业级 RAG 检索增强生成系统，涵盖向量数据库选型、Embedding 策略和检索优化技巧。', category: 'ai', date: '2026-03-10', views: 2156, comments: 45, tags: ['RAG', 'LLM', 'Vector DB'] },
+  { id: 3, title: '微服务架构演进之路', excerpt: '从单体应用逐步演进到微服务架构的实践经验，包括服务拆分策略、通信模式和分布式事务处理。', category: 'backend', date: '2026-03-09', views: 1876, comments: 32, tags: ['微服务', 'Docker', 'K8s'] },
+  { id: 4, title: 'Next.js 15 新特性深度解析', excerpt: '详细介绍 Next.js 15 的 Turbopack、Server Actions、Partial Prerendering 等新功能特性。', category: 'frontend', date: '2026-03-08', views: 3421, comments: 67, tags: ['Next.js', 'React', 'SSR'] },
+  { id: 5, title: 'LangChain Agent 开发实战', excerpt: '使用 LangChain 构建具备工具调用能力的 AI Agent，实现复杂任务的自动化执行与编排。', category: 'ai', date: '2026-03-07', views: 2890, comments: 54, tags: ['LangChain', 'Agent', 'LLM'] },
+  { id: 6, title: 'PostgreSQL 高级查询优化技巧', excerpt: '深入分析 PostgreSQL 执行计划，掌握索引设计、分区表和复杂查询优化的实用技巧。', category: 'backend', date: '2026-03-06', views: 1567, comments: 23, tags: ['PostgreSQL', '数据库', '性能优化'] }
+];
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+  initParticles();
+  initStats();
+  renderBlogPosts();
+  initCategoryFilter();
+  initSearch();
+  initModal();
+  initTerminal();
+  updateDate();
+});
+
+// Particles
+function initParticles() {
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 30; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDelay = Math.random() * 20 + 's';
+    p.style.animationDuration = (15 + Math.random() * 10) + 's';
+    container.appendChild(p);
+  }
+}
+
+// Stats Counter Animation
+function initStats() {
+  const statValues = document.querySelectorAll('.stat-value');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = parseInt(el.dataset.target);
+        animateNumber(el, target);
+        observer.unobserve(el);
+      }
+    });
+  }, { threshold: 0.5 });
+  statValues.forEach(el => observer.observe(el));
+}
+
+function animateNumber(el, target) {
+  const duration = 1500;
+  const steps = 40;
+  const increment = target / steps;
+  let current = 0;
+  const timer = setInterval(() => {
+    current += increment;
+    if (current >= target) { el.textContent = target; clearInterval(timer); }
+    else { el.textContent = Math.floor(current); }
+  }, duration / steps);
+}
+
+// Render Blog Posts
+function renderBlogPosts(filter = 'all') {
+  const grid = document.getElementById('blogGrid');
+  const filtered = filter === 'all' ? blogPosts : blogPosts.filter(p => p.category === filter);
+  grid.innerHTML = filtered.map(post => `
+    <article class="blog-card" data-id="${post.id}">
+      <div class="blog-card-header">
+        <span class="blog-category">${getCategoryName(post.category)}</span>
+        <h3 class="blog-title">${post.title}</h3>
+        <p class="blog-excerpt">${post.excerpt}</p>
+      </div>
+      <div class="blog-card-footer">
+        <div class="blog-meta">
+          <span class="blog-meta-item"><span class="icon">&#128197;</span>${post.date}</span>
+          <span class="blog-meta-item"><span class="icon">&#128065;</span>${post.views}</span>
+          <span class="blog-meta-item"><span class="icon">&#128172;</span>${post.comments}</span>
+        </div>
+      </div>
+    </article>
+  `).join('');
+  document.querySelectorAll('.blog-card').forEach(card => {
+    card.addEventListener('click', () => openModal(parseInt(card.dataset.id)));
+  });
+}
+
+function getCategoryName(category) {
+  const names = { frontend: '前端开发', backend: '后端架构', ai: 'AI / ML', devops: 'DevOps' };
+  return names[category] || category;
+}
+
+// Category Filter
+function initCategoryFilter() {
+  document.querySelectorAll('.category-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.category-item').forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+      renderBlogPosts(this.dataset.category);
+    });
+  });
+}
+
+// Search
+function initSearch() {
+  const input = document.getElementById('searchInput');
+  let debounceTimer;
+  input.addEventListener('input', function() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      const query = this.value.toLowerCase().trim();
+      if (query) {
+        const results = blogPosts.filter(p => p.title.toLowerCase().includes(query) || p.excerpt.toLowerCase().includes(query) || p.tags.some(t => t.toLowerCase().includes(query)));
+        renderFilteredPosts(results);
+      } else { renderBlogPosts(); }
+    }, 300);
+  });
+}
+
+function renderFilteredPosts(posts) {
+  const grid = document.getElementById('blogGrid');
+  if (posts.length === 0) {
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text-muted);">没有找到匹配的文章</div>';
+    return;
+  }
+  renderBlogPosts();
+}
+
+// Modal
+function initModal() {
+  const modal = document.getElementById('modal');
+  const closeBtn = document.getElementById('modalClose');
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+}
+
+function openModal(id) {
+  const post = blogPosts.find(p => p.id === id);
+  if (!post) return;
+  document.getElementById('modalTitle').textContent = post.title;
+  document.getElementById('modalMeta').innerHTML = `
+    <span class="modal-meta-item"><span>&#128197;</span> ${post.date}</span>
+    <span class="modal-meta-item"><span>&#128065;</span> ${post.views} 阅读</span>
+    <span class="modal-meta-item"><span>&#128172;</span> ${post.comments} 评论</span>
+  `;
+  document.getElementById('modalTags').innerHTML = post.tags.map(t => `<span class="tag">${t}</span>`).join('');
+  document.getElementById('modalContent').innerHTML = `
+    <p>${post.excerpt}</p>
+    <p style="margin-top: 15px;">本文详细介绍了${post.tags.join('、')}相关技术的原理和实践经验。</p>
+    <p style="margin-top: 15px; color: var(--text-muted); font-style: italic;">文章内容由 AI Agent 自动生成...</p>
+  `;
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+}
+
+// Terminal Animation
+function initTerminal() {
+  const commands = ['git status', 'npm run dev', 'docker-compose up', 'kubectl get pods', 'claude agent run'];
+  let cmdIndex = 0, charIndex = 0;
+  const typingEl = document.getElementById('typingCommand');
+  function typeCommand() {
+    const cmd = commands[cmdIndex];
+    if (charIndex < cmd.length) {
+      typingEl.textContent += cmd[charIndex];
+      charIndex++;
+      setTimeout(typeCommand, 80 + Math.random() * 40);
+    } else {
+      setTimeout(() => { typingEl.textContent = ''; charIndex = 0; cmdIndex = (cmdIndex + 1) % commands.length; typeCommand(); }, 2500);
+    }
+  }
+  setTimeout(typeCommand, 1500);
+}
+
+// Update Date
+function updateDate() {
+  const now = new Date();
+  document.getElementById('currentDate').textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd \\\"D:/AICode/ClaudeCode/CyberBlog2.0\\\" && npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \\\"@/*\\\" --use-npm --no-turbopack\",\"timeout\":300000,...",
+  "error": "Exit code 1\nnpm warn Unknown user config \"chromedriver_cdnurl\". This will stop working in the next major version of npm.\nCould not create a project called \u001b[31m\"CyberBlog2.0\"\u001b[39m because of npm naming restrictions:\n    \u001b[31m\u001b[1m*\u001b[22m\u001b[39m name can no longer contain capital letters",
+  "timestamp": "2026-03-11T12:35:16.887Z",
+  "retry_count": 1
+}

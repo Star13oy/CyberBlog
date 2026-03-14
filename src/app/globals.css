@@ -1,0 +1,433 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============ 赛博朋克主题变量 ============ */
+:root {
+  --primary: #00d4ff;
+  --primary-light: #4de8ff;
+  --primary-dark: #00a8cc;
+  --accent: #bf5af2;
+  --accent-light: #d17df7;
+  --success: #30d158;
+  --warning: #ffd60a;
+  --danger: #ff453a;
+
+  --bg-dark: #080c14;
+  --bg-card: rgba(13, 20, 35, 0.85);
+  --bg-elevated: rgba(18, 28, 48, 0.8);
+
+  --text-primary: #f0f4f8;
+  --text-secondary: #a8b8c8;
+  --text-muted: #607080;
+
+  --border-color: rgba(0, 212, 255, 0.15);
+  --glow-primary: 0 0 25px rgba(0, 212, 255, 0.35);
+  --glow-accent: 0 0 25px rgba(191, 90, 242, 0.35);
+}
+
+/* ============ 基础样式 ============ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* ============ 背景效果 ============ */
+.bg-pattern {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(191, 90, 242, 0.08) 0%, transparent 50%);
+}
+
+.grid-lines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ============ 赛博朋克霓虹效果 ============ */
+
+/* 霓虹标题 - 青色发光 */
+.neon-title-cyber {
+  font-family: 'Orbitron', 'JetBrains Mono', monospace;
+  color: #00ffff;
+  text-shadow:
+    0 0 10px #00ffff,
+    0 0 20px #00ffff,
+    0 0 40px #00ffff,
+    0 0 60px #00ffff;
+  letter-spacing: 4px;
+}
+
+/* 紫色霓虹 */
+.neon-title-blog {
+  font-family: 'Orbitron', 'JetBrains Mono', monospace;
+  color: #00ffff;
+  text-shadow:
+    0 0 10px #00ffff,
+    0 0 20px #00ffff,
+    0 0 40px #00ffff;
+  letter-spacing: 4px;
+}
+
+/* 全息文字效果 */
+.holographic-text {
+  background: linear-gradient(
+    90deg,
+    #00d4ff 0%,
+    #00ffff 25%,
+    #bf5af2 50%,
+    #00ffff 75%,
+    #00d4ff 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: holographicShimmer 3s linear infinite;
+  filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.5));
+}
+
+@keyframes holographicShimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
+
+/* HUD 边框效果 */
+.hud-border {
+  position: relative;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+.hud-border::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+  box-shadow: 0 0 10px #00d4ff;
+}
+
+.hud-border::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+  box-shadow: 0 0 10px #00d4ff;
+}
+
+/* HUD 角落装饰 */
+.hud-corners {
+  position: relative;
+}
+
+.hud-corners::before,
+.hud-corners::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: #00d4ff;
+  border-style: solid;
+}
+
+.hud-corners::before {
+  top: 0;
+  left: 0;
+  border-width: 2px 0 0 2px;
+  box-shadow: -2px -2px 10px rgba(0, 212, 255, 0.5);
+}
+
+.hud-corners::after {
+  bottom: 0;
+  right: 0;
+  border-width: 0 2px 2px 0;
+  box-shadow: 2px 2px 10px rgba(0, 212, 255, 0.5);
+}
+
+/* 扫描线效果 */
+.scanlines::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 212, 255, 0.03) 2px,
+    rgba(0, 212, 255, 0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* 霓虹按钮 */
+.neon-btn {
+  position: relative;
+  background: transparent;
+  border: 1px solid #00d4ff;
+  color: #00d4ff;
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+  box-shadow:
+    0 0 10px rgba(0, 212, 255, 0.3),
+    inset 0 0 10px rgba(0, 212, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.neon-btn:hover {
+  background: rgba(0, 212, 255, 0.1);
+  box-shadow:
+    0 0 20px rgba(0, 212, 255, 0.5),
+    0 0 40px rgba(0, 212, 255, 0.3),
+    inset 0 0 20px rgba(0, 212, 255, 0.2);
+}
+
+/* HUD 数据显示 */
+.hud-data {
+  font-family: 'JetBrains Mono', monospace;
+  color: #00d4ff;
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+  letter-spacing: 1px;
+}
+
+/* ============ 卡片样式 ============ */
+.cyber-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.cyber-card:hover {
+  border-color: rgba(0, 212, 255, 0.4);
+  box-shadow: var(--glow-primary);
+}
+
+/* ============ 按钮样式 ============ */
+.cyber-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.cyber-btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: var(--bg-dark);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+.cyber-btn-primary:hover {
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.cyber-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.cyber-btn-ghost:hover {
+  background: rgba(0, 212, 255, 0.08);
+  color: var(--primary);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+/* ============ 输入框样式 ============ */
+.cyber-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(13, 20, 35, 0.8);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.cyber-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+}
+
+.cyber-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ============ 滚动条 ============ */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 212, 255, 0.5);
+}
+
+/* ============ 动画关键帧 ============ */
+@keyframes floatUp {
+  0% { transform: translateY(100vh); opacity: 0; }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% { transform: translateY(-100px); opacity: 0; }
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+
+@keyframes logoGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0,212,255,0.4), 0 0 40px rgba(191,90,242,0.2); }
+  50% { box-shadow: 0 0 30px rgba(0,212,255,0.6), 0 0 60px rgba(191,90,242,0.4); }
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% center; }
+  100% { background-position: 300% center; }
+}
+
+@keyframes badgeFlash {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+@keyframes textFlash {
+  0% { left: -100%; opacity: 0; }
+  50% { opacity: 1; }
+  100% { left: 200%; opacity: 0; }
+}
+
+@keyframes subtitleFlash {
+  0% { left: -100%; opacity: 0; }
+  50% { opacity: 1; }
+  100% { left: 200%; opacity: 0; }
+}
+
+@keyframes magentaBloom {
+  0%, 100% { text-shadow: 0 0 10px #bf5af2, 0 0 30px #bf5af2, 0 0 60px rgba(191,90,242,0.6); }
+  50% { text-shadow: 0 0 15px #bf5af2, 0 0 40px #bf5af2, 0 0 80px rgba(191,90,242,0.7), 0 0 120px rgba(191,90,242,0.5); }
+}
+
+@keyframes cyanPulse {
+  0%, 100% {
+    text-shadow:
+      0 0 5px #00d4ff,
+      0 0 10px #00d4ff,
+      0 0 20px #00d4ff,
+      0 0 40px #00d4ff,
+      0 0 80px rgba(0, 212, 255, 0.5);
+    opacity: 1;
+  }
+  50% {
+    text-shadow:
+      0 0 10px #00d4ff,
+      0 0 20px #00d4ff,
+      0 0 40px #00d4ff,
+      0 0 80px #00d4ff,
+      0 0 120px rgba(0, 212, 255, 0.6);
+    opacity: 0.9;
+  }
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px #30d158; }
+  50% { opacity: 0.6; box-shadow: 0 0 20px #30d158; }
+}
+
+@keyframes holographic {
+  0% { filter: blur(1px) hue-rotate(0deg); opacity: 0.8; }
+  25% { filter: blur(1px) hue-rotate(15deg); opacity: 0.9; }
+  50% { filter: blur(1px) hue-rotate(0deg); opacity: 0.8; }
+  75% { filter: blur(1px) hue-rotate(-15deg); opacity: 0.9; }
+  100% { filter: blur(1px) hue-rotate(0deg); opacity: 0.8; }
+}
+
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-float-up {
+  animation: floatUp 15s infinite;
+}
+
+.animate-gradient-move {
+  animation: gradientMove 3s linear infinite;
+}
+
+.animate-logo-glow {
+  animation: logoGlow 3s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 3s linear infinite;
+}
+
+.animate-badge-flash {
+  animation: badgeFlash 3s ease-in-out infinite;
+}
+
+.animate-text-flash {
+  animation: textFlash 4s ease-in-out infinite;
+}
+
+.animate-subtitle-flash {
+  animation: subtitleFlash 5s ease-in-out infinite;
+}
+
+.animate-magenta-bloom {
+  animation: magentaBloom 3s ease-in-out infinite;
+}
+
+.animate-grid-pulse {
+  animation: gridPulse 8s ease-in-out infinite;
+}
