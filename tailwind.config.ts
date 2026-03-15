@@ -22,8 +22,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['Noto Sans SC', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['var(--font-chinese)', 'var(--font-inter)', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['var(--font-mono)', 'JetBrains Mono', 'monospace'],
       },
       animation: {
         'pulse-glow': 'pulseGlow 2s ease-in-out infinite',

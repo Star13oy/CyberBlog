@@ -14,21 +14,27 @@ export async function GET(request: NextRequest) {
     const where: Record<string, unknown> = {}
     if (authorId) where.authorId = authorId
 
-    const [logs, total] = await Promise.all([
-      prisma.dailyLog.findMany({
+    const [logsData, total] = await Promise.all([
+      prisma.daily_logs.findMany({
         where,
         skip,
         take: pageSize,
         orderBy: { date: 'desc' },
         include: {
-          author: {
+          users: {
             select: { id: true, username: true, name: true },
           },
           tasks: true,
         },
       }),
-      prisma.dailyLog.count({ where }),
+      prisma.daily_logs.count({ where }),
     ])
+
+    // Transform to match expected format
+    const logs = logsData.map(log => ({
+      ...log,
+      author: log.users,
+    }))
 
     return NextResponse.json({
       success: true,
@@ -56,7 +62,7 @@ export async function POST(request: NextRequest) {
     const { date, title, content, tasks, authorId, aiGenerated } = body
 
     // 检查该日期是否已有日报
-    const existingLog = await prisma.dailyLog.findFirst({
+    const existingLog = await prisma.daily_logs.findFirst({
       where: {
         date: new Date(date),
         authorId: authorId || 'default-user',
@@ -70,7 +76,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const dailyLog = await prisma.dailyLog.create({
+    const dailyLogData = await prisma.daily_logs.create({
       data: {
         date: new Date(date),
         title,
@@ -92,6 +98,12 @@ export async function POST(request: NextRequest) {
         tasks: true,
       },
     })
+
+    // Transform to match expected format
+    const dailyLog = {
+      ...dailyLogData,
+      author: dailyLogData.users,
+    }
 
     return NextResponse.json({
       success: true,

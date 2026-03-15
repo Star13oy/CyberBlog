@@ -16,17 +16,17 @@ export async function GET(request: NextRequest) {
         taskStats,
         categoryStats,
       ] = await Promise.all([
-        prisma.post.count({ where: { status: 'PUBLISHED' } }),
-        prisma.post.aggregate({
+        prisma.posts.count({ where: { status: 'PUBLISHED' } }),
+        prisma.posts.aggregate({
           _sum: { viewCount: true },
           where: { status: 'PUBLISHED' },
         }),
-        prisma.dailyLog.count(),
-        prisma.task.groupBy({
+        prisma.daily_logs.count(),
+        prisma.tasks.groupBy({
           by: ['status'],
           _count: { id: true },
         }),
-        prisma.category.findMany({
+        prisma.categories.findMany({
           include: {
             _count: { select: { posts: { where: { status: 'PUBLISHED' } } } },
           },
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       const sevenDaysAgo = new Date()
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
-      const stats = await prisma.statistic.findMany({
+      const stats = await prisma.statistics.findMany({
         where: {
           date: { gte: sevenDaysAgo },
         },

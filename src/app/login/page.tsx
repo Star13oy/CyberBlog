@@ -1,10 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 
-export default function LoginPage() {
-  const [email, setEmail] = useState('')
+function LoginForm() {
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/'
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -18,59 +21,58 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       })
 
       const data = await res.json()
 
       if (data.success) {
-        window.location.href = '/'
+        // 使用完整页面刷新确保 cookie 生效
+        window.location.href = redirect
       } else {
         setError(data.error || '登录失败')
+        setLoading(false)
       }
     } catch (err) {
       setError('登录失败，请重试')
-    } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-5">
-      <div className="w-full max-w-md">
+    <div className="page-container flex items-center justify-center px-5">
+      <div className="form-container w-full">
         {/* Logo */}
-        <Link href="/" className="flex items-center justify-center gap-3 text-2xl font-bold text-white mb-10">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00d4ff] to-[#bf5af2] flex items-center justify-center text-2xl shadow-[0_0_20px_rgba(0,212,255,0.4)]">
-            🤖
-          </div>
-          <span>Cyber<span className="text-[#00d4ff]">Blog</span></span>
+        <Link href="/" className="flex items-center justify-center gap-3 mb-10">
+          <div className="logo-icon">🤖</div>
+          <span className="logo-text">
+            Cyber<span className="logo-highlight">Blog</span>
+          </span>
         </Link>
 
         {/* 登录表单 */}
-        <div className="cyber-card p-8">
-          <h1 className="text-2xl font-bold text-white mb-6 text-center">登录</h1>
+        <div className="form-card">
+          <h1 className="form-title">登录</h1>
 
           {error && (
-            <div className="mb-4 p-3 bg-[rgba(255,69,58,0.1)] border border-[rgba(255,69,58,0.3)] rounded-lg text-sm text-[#ff453a]">
-              {error}
-            </div>
+            <div className="form-error">{error}</div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm text-[#a8b8c8] mb-2">邮箱</label>
+              <label className="form-label">用户名 / 邮箱</label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="cyber-input"
-                placeholder="your@email.com"
+                placeholder="用户名或邮箱"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm text-[#a8b8c8] mb-2">密码</label>
+              <label className="form-label">密码</label>
               <input
                 type="password"
                 value={password}
@@ -90,14 +92,26 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-[#607080]">
+          <div className="form-footer">
             还没有账户？{' '}
-            <Link href="/register" className="text-[#00d4ff] hover:underline">
+            <Link href="/register" className="form-link">
               注册
             </Link>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="page-container flex items-center justify-center">
+        <div className="text-muted">加载中...</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

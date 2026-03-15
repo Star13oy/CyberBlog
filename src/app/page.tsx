@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
-// 浮动粒子 - 增强发光效果
+// 浮动粒子
 function Particles() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: -5 }}>
@@ -13,9 +13,9 @@ function Particles() {
           className="absolute w-[2px] h-[2px] rounded-full"
           style={{
             left: `${Math.random() * 100}%`,
-            background: i % 2 === 0 ? '#00d4ff' : '#bf5af2',
+            background: i % 2 === 0 ? 'var(--primary)' : '#bf5af2',
             boxShadow: i % 2 === 0
-              ? '0 0 6px #00d4ff, 0 0 12px #00d4ff, 0 0 20px rgba(0,212,255,0.5)'
+              ? '0 0 6px var(--primary), 0 0 12px var(--primary), 0 0 20px rgba(0,212,255,0.5)'
               : '0 0 6px #bf5af2, 0 0 12px #bf5af2, 0 0 20px rgba(191,90,242,0.5)',
             animation: `floatUp ${18 + Math.random() * 12}s infinite`,
             animationDelay: `${Math.random() * 20}s`,
@@ -26,92 +26,80 @@ function Particles() {
   )
 }
 
-// 侧边栏 - HUD 风格
-function Sidebar() {
+// 侧边栏
+function Sidebar({ postCount, dailyLogCount }: { postCount: number; dailyLogCount: number }) {
   return (
-    <aside className="w-[280px] fixed top-[72px] bottom-0 left-0 bg-[rgba(5,10,18,0.9)] border-r border-[rgba(0,212,255,0.3)] p-6 overflow-y-auto backdrop-blur-sm hidden lg:block" style={{ zIndex: 20 }}>
+    <aside className="w-[280px] fixed top-[72px] bottom-0 left-0 p-6 overflow-y-auto backdrop-blur-sm hidden lg:block sidebar" style={{ zIndex: 20 }}>
       {/* Agent 状态 */}
       <div className="mb-8">
-        <h3 className="text-[11px] font-semibold text-[#00d4ff] uppercase tracking-[2px] mb-4 pb-2 border-b border-[rgba(0,212,255,0.3)] font-mono" style={{ textShadow: '0 0 10px rgba(0, 212, 255, 0.5)' }}>
-          {'// AGENT_STATUS'}
-        </h3>
-        <div className="bg-[rgba(0,10,20,0.8)] border border-[rgba(0,212,255,0.3)] rounded-lg p-5 relative overflow-hidden" style={{ boxShadow: '0 0 20px rgba(0,212,255,0.15), inset 0 0 20px rgba(0,212,255,0.05)' }}>
+        <h3 className="sidebar-title">{'//'} AGENT_STATUS</h3>
+        <div className="sidebar-card">
           {/* 顶部动态渐变线 */}
-          <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#00d4ff] via-[#bf5af2] to-[#00d4ff] bg-[length:200%_100%] animate-[gradientMove_3s_linear_infinite]" />
+          <div className="gradient-line-top" />
           {/* 头像和信息 */}
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 rounded-lg bg-[rgba(0,10,20,0.8)] border border-[#00d4ff] flex items-center justify-center text-2xl" style={{ boxShadow: '0 0 15px rgba(0,212,255,0.4), inset 0 0 10px rgba(0,212,255,0.1)' }}>
-              🤖
-            </div>
+            <div className="sidebar-avatar">🤖</div>
             <div>
-              <h4 className="text-[15px] font-semibold text-white font-mono" style={{ textShadow: '0 0 10px rgba(255,255,255,0.3)' }}>Cyber Agent</h4>
-              <div className="flex items-center gap-2 text-[12px] text-[#30d158]">
-                <span className="w-2 h-2 rounded-full bg-[#30d158] animate-[statusPulse_2s_infinite]" style={{ boxShadow: '0 0 10px #30d158' }} />
-                <span className="font-mono">ONLINE</span>
+              <h4 className="sidebar-name">Cyber Agent</h4>
+              <div className="sidebar-status">
+                <span className="status-dot" />
+                <span>ONLINE</span>
               </div>
             </div>
           </div>
-          {/* 统计数据 - HUD 风格 */}
-          <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[rgba(0,212,255,0.2)]">
-            <div className="text-center p-3 bg-[rgba(0,212,255,0.05)] rounded border border-[rgba(0,212,255,0.2)]">
-              <div className="text-[20px] font-bold text-[#00d4ff] font-mono hud-data">99.9%</div>
-              <div className="text-[10px] text-[#405060] mt-1 font-mono uppercase">Uptime</div>
+          {/* 统计数据 */}
+          <div className="sidebar-stats">
+            <div className="sidebar-stat-item">
+              <div className="sidebar-stat-value">{postCount}</div>
+              <div className="sidebar-stat-label">文章</div>
             </div>
-            <div className="text-center p-3 bg-[rgba(0,212,255,0.05)] rounded border border-[rgba(0,212,255,0.2)]">
-              <div className="text-[20px] font-bold text-[#00d4ff] font-mono hud-data">2.3s</div>
-              <div className="text-[10px] text-[#405060] mt-1 font-mono uppercase">Latency</div>
+            <div className="sidebar-stat-item">
+              <div className="sidebar-stat-value">{dailyLogCount}</div>
+              <div className="sidebar-stat-label">日报</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 分类导航 */}
+      {/* 快速导航 */}
       <div className="mb-8">
-        <h3 className="text-[11px] font-semibold text-[#00d4ff] uppercase tracking-[2px] mb-4 pb-2 border-b border-[rgba(0,212,255,0.3)] font-mono" style={{ textShadow: '0 0 10px rgba(0, 212, 255, 0.5)' }}>
-          {'// CATEGORIES'}
-        </h3>
+        <h3 className="sidebar-title">{'//'} NAVIGATION</h3>
         <ul className="space-y-1.5">
-          {[
-            { icon: '📄', name: '全部文章', count: 128 },
-            { icon: '🎨', name: '前端开发', count: 42 },
-            { icon: '⚙️', name: '后端架构', count: 35 },
-            { icon: '🧠', name: 'AI / ML', count: 28 },
-            { icon: '💻', name: 'DevOps', count: 23 },
-          ].map((item, i) => (
-            <li
-              key={i}
-              className={`flex items-center justify-between px-4 py-3 rounded cursor-pointer transition-all border font-mono text-[13px]
-                ${i === 0
-                  ? 'bg-[rgba(0,212,255,0.1)] text-[#00d4ff] border-[rgba(0,212,255,0.4)]'
-                  : 'text-[#607080] bg-[rgba(0,10,20,0.5)] border-[rgba(0,212,255,0.1)] hover:bg-[rgba(0,212,255,0.05)] hover:text-[#00d4ff] hover:border-[rgba(0,212,255,0.2)]'}`}
-              style={i === 0 ? { boxShadow: '0 0 15px rgba(0,212,255,0.2), inset 0 0 15px rgba(0,212,255,0.05)' } : {}}
-            >
+          <li className="sidebar-nav-item active">
+            <Link href="/" className="flex items-center justify-between w-full">
               <span className="flex items-center gap-3">
-                <span>{item.icon}</span>
-                <span>{item.name}</span>
+                <span>🏠</span>
+                <span>首页</span>
               </span>
-              <span className={`text-[11px] px-2 py-0.5 rounded font-mono ${i === 0 ? 'bg-[rgba(0,212,255,0.2)] text-[#00d4ff]' : 'bg-[rgba(0,212,255,0.1)] text-[#405060]'}`}>
-                {item.count}
+            </Link>
+          </li>
+          <li className="sidebar-nav-item">
+            <Link href="/blog" className="flex items-center justify-between w-full">
+              <span className="flex items-center gap-3">
+                <span>📚</span>
+                <span>博客文章</span>
               </span>
-            </li>
-          ))}
+              <span className="sidebar-nav-count">{postCount}</span>
+            </Link>
+          </li>
+          <li className="sidebar-nav-item">
+            <Link href="/daily" className="flex items-center justify-between w-full">
+              <span className="flex items-center gap-3">
+                <span>📅</span>
+                <span>每日日报</span>
+              </span>
+              <span className="sidebar-nav-count">{dailyLogCount}</span>
+            </Link>
+          </li>
         </ul>
       </div>
 
       {/* 热门标签 */}
       <div>
-        <h3 className="text-[11px] font-semibold text-[#00d4ff] uppercase tracking-[2px] mb-4 pb-2 border-b border-[rgba(0,212,255,0.3)] font-mono" style={{ textShadow: '0 0 10px rgba(0, 212, 255, 0.5)' }}>
-          {'// HOT_TAGS'}
-        </h3>
+        <h3 className="sidebar-title">{'//'} TECH_STACK</h3>
         <div className="flex flex-wrap gap-2">
-          {['Vue3', 'React', 'TypeScript', 'Node.js', 'Python', 'Docker', 'LLM', 'RAG'].map((tag) => (
-            <span
-              key={tag}
-              className="px-3 py-1.5 bg-[rgba(191,90,242,0.1)] border border-[rgba(191,90,242,0.3)] rounded text-[11px] text-[#bf5af2] cursor-pointer transition-all hover:bg-[rgba(191,90,242,0.2)] hover:border-[#bf5af2] hover:text-white font-mono"
-              style={{ textShadow: '0 0 5px rgba(191,90,242,0.3)' }}
-            >
-              {tag}
-            </span>
+          {['Next.js', 'TypeScript', 'Prisma', 'MySQL', 'Tailwind', 'Claude'].map((tag) => (
+            <span key={tag} className="sidebar-tag">{tag}</span>
           ))}
         </div>
       </div>
@@ -119,35 +107,33 @@ function Sidebar() {
   )
 }
 
-// 终端模拟器 - HUD 风格
+// 终端模拟器
 function Terminal() {
   return (
-    <div className="bg-[rgba(0,10,20,0.9)] border border-[rgba(0,212,255,0.3)] rounded-lg overflow-hidden relative" style={{ boxShadow: '0 0 30px rgba(0,212,255,0.2), inset 0 0 30px rgba(0,212,255,0.05)' }}>
+    <div className="terminal">
       {/* 顶部渐变线 */}
-      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00d4ff] to-transparent opacity-60" />
+      <div className="gradient-line-top" />
       {/* 终端标题栏 */}
-      <div className="flex items-center gap-2.5 px-5 py-3.5 bg-[rgba(0,212,255,0.05)] border-b border-[rgba(0,212,255,0.2)]">
-        <span className="w-3 h-3 rounded-full bg-[#ff5f57]" style={{ boxShadow: '0 0 8px rgba(255,95,87,0.5)' }} />
-        <span className="w-3 h-3 rounded-full bg-[#febc2e]" style={{ boxShadow: '0 0 8px rgba(254,188,46,0.5)' }} />
-        <span className="w-3 h-3 rounded-full bg-[#28c840]" style={{ boxShadow: '0 0 8px rgba(40,200,64,0.5)' }} />
-        <span className="ml-4 text-[12px] text-[#00d4ff] font-mono" style={{ textShadow: '0 0 10px rgba(0,212,255,0.5)' }}>CYBER-BLOG@AGENT:~</span>
+      <div className="terminal-header">
+        <span className="terminal-dot red" />
+        <span className="terminal-dot yellow" />
+        <span className="terminal-dot green" />
+        <span className="terminal-title">CYBER-BLOG@AGENT:~</span>
       </div>
       {/* 终端内容 */}
-      <div className="p-6 font-mono text-[13px] min-h-[180px] leading-relaxed relative">
-        {/* 扫描线效果 */}
-        <div className="absolute inset-0 pointer-events-none bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,212,255,0.02)_2px,rgba(0,212,255,0.02)_4px)]" />
+      <div className="terminal-content">
         <div className="relative z-10">
           <div className="mb-2">
-            <span className="text-[#30d158]" style={{ textShadow: '0 0 10px rgba(48,209,88,0.5)' }}>$ </span>
-            <span className="text-[#00d4ff]" style={{ textShadow: '0 0 10px rgba(0,212,255,0.5)' }}>npm run build</span>
+            <span className="terminal-prompt">$ </span>
+            <span className="terminal-command">claude --version</span>
           </div>
-          <div className="text-[#405060]">✓ Compiled successfully in 2.3s</div>
-          <div className="text-[#405060]">✓ Generating static pages (12/12)</div>
-          <div className="text-[#30d158] mt-2" style={{ textShadow: '0 0 10px rgba(48,209,88,0.4)' }}>✓ Build completed!</div>
+          <div className="terminal-output">Claude Code v2.1.72</div>
+          <div className="terminal-output">Model: claude-sonnet-4-6</div>
+          <div className="terminal-success mt-2">✓ AI Agent Ready</div>
           {/* 光标行 */}
           <div className="mt-5 flex items-center">
-            <span className="text-[#30d158]" style={{ textShadow: '0 0 10px rgba(48,209,88,0.5)' }}>$ </span>
-            <span className="inline-block w-[8px] h-[16px] bg-[#00d4ff] ml-1 animate-pulse" style={{ boxShadow: '0 0 10px #00d4ff' }} />
+            <span className="terminal-prompt">$ </span>
+            <span className="terminal-cursor" />
           </div>
         </div>
       </div>
@@ -155,182 +141,135 @@ function Terminal() {
   )
 }
 
-// 统计卡片 - HUD 风格
-function StatCard({ icon, value, label, color }: { icon: string; value: number; label: string; color: string }) {
-  const colorStyles: Record<string, { border: string; glow: string; text: string }> = {
-    blue: { border: 'border-[rgba(0,212,255,0.4)]', glow: '0 0 20px rgba(0,212,255,0.3)', text: '#00d4ff' },
-    green: { border: 'border-[rgba(48,209,88,0.4)]', glow: '0 0 20px rgba(48,209,88,0.3)', text: '#30d158' },
-    purple: { border: 'border-[rgba(191,90,242,0.4)]', glow: '0 0 20px rgba(191,90,242,0.3)', text: '#bf5af2' },
-    yellow: { border: 'border-[rgba(255,214,10,0.4)]', glow: '0 0 20px rgba(255,214,10,0.3)', text: '#ffd60a' },
-  }
-  const style = colorStyles[color]
-
-  return (
-    <div className="relative p-6 bg-[rgba(0,10,20,0.8)] rounded-lg border overflow-hidden group cursor-pointer transition-all hover:-translate-y-1"
-      style={{ borderColor: `rgba(0,212,255,0.2)`, boxShadow: `${style.glow}, inset 0 0 30px rgba(0,212,255,0.05)` }}>
-      {/* 顶部渐变线 */}
-      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-current to-transparent opacity-50 group-hover:opacity-100 transition-opacity" style={{ color: style.text }} />
+// 统计卡片
+function StatCard({ icon, value, label, color, href }: { icon: string; value: number; label: string; color: string; href?: string }) {
+  const content = (
+    <>
       {/* 图标 */}
-      <div className="w-12 h-12 rounded-lg mx-auto mb-4 flex items-center justify-center text-xl bg-[rgba(0,10,20,0.8)] border"
-        style={{ borderColor: `${style.text}40`, boxShadow: `0 0 15px ${style.text}30, inset 0 0 10px ${style.text}10` }}>
-        {icon}
-      </div>
-      {/* 数值 - 霓虹发光 */}
-      <div className="text-[36px] font-bold text-center font-mono mb-1"
-        style={{ color: style.text, textShadow: `0 0 10px ${style.text}, 0 0 20px ${style.text}, 0 0 30px ${style.text}80` }}>
-        {value}
-      </div>
+      <div className="stat-icon">{icon}</div>
+      {/* 数值 */}
+      <div className="stat-value">{value}</div>
       {/* 标签 */}
-      <div className="text-[11px] text-center text-[#405060] font-mono uppercase tracking-wider">{label}</div>
-    </div>
+      <div className="stat-label">{label}</div>
+    </>
   )
-}
 
-// 任务项 - HUD 风格
-function TaskItem({ title, desc, status, progress }: { title: string; desc: string; status: string; progress: number }) {
-  const statusStyles: Record<string, { color: string; glow: string; icon: string }> = {
-    done: { color: '#30d158', glow: '0 0 15px rgba(48,209,88,0.4)', icon: '✓' },
-    'in-progress': { color: '#ffd60a', glow: '0 0 15px rgba(255,214,10,0.4)', icon: '●' },
-    todo: { color: '#405060', glow: 'none', icon: '○' },
+  if (href) {
+    return (
+      <Link href={href} className={`stat-card stat-card-${color} block hover:scale-105 transition-transform cursor-pointer`}>
+        {content}
+      </Link>
+    )
   }
-  const style = statusStyles[status]
 
   return (
-    <div className="flex items-center gap-4 p-4 bg-[rgba(0,10,20,0.6)] rounded border border-[rgba(0,212,255,0.15)] transition-all hover:bg-[rgba(0,10,20,0.8)] hover:border-[rgba(0,212,255,0.3)] cursor-pointer">
-      {/* 状态图标 */}
-      <div className="w-9 h-9 rounded flex items-center justify-center text-sm font-mono"
-        style={{
-          color: style.color,
-          border: `1px solid ${style.color}40`,
-          boxShadow: style.glow,
-          background: `${style.color}15`
-        }}>
-        {style.icon}
-      </div>
-      {/* 内容 */}
-      <div className="flex-1 min-w-0">
-        <div className="text-[14px] font-medium text-white font-mono truncate">{title}</div>
-        <div className="text-[12px] text-[#405060] truncate">{desc}</div>
-      </div>
-      {/* 进度 */}
-      <div className="text-[14px] font-semibold text-[#00d4ff] font-mono shrink-0" style={{ textShadow: '0 0 10px rgba(0,212,255,0.5)' }}>
-        {progress}%
-      </div>
+    <div className={`stat-card stat-card-${color}`}>
+      {content}
     </div>
   )
 }
 
-// 文章卡片 - HUD 风格
-function PostCard({ title, excerpt, category, date, views }: { title: string; excerpt: string; category: string; date: string; views: number }) {
+// 文章卡片
+function PostCard({ title, excerpt, category, date, views, slug }: { title: string; excerpt: string; category: string; date: string; views: number; slug: string }) {
   return (
-    <article className="bg-[rgba(0,10,20,0.8)] border border-[rgba(0,212,255,0.2)] rounded-lg overflow-hidden transition-all hover:border-[rgba(0,212,255,0.4)] hover:-translate-y-1 relative group cursor-pointer"
-      style={{ boxShadow: '0 0 20px rgba(0,212,255,0.1), inset 0 0 20px rgba(0,212,255,0.03)' }}>
-      {/* 顶部渐变线 */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#00d4ff] to-[#bf5af2] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-      {/* 内容区 */}
-      <div className="p-6">
-        {/* 分类标签 */}
-        <span className="inline-block px-3 py-1 bg-[rgba(191,90,242,0.1)] text-[#bf5af2] text-[10px] font-semibold rounded border border-[rgba(191,90,242,0.3)] mb-4 font-mono uppercase">
-          {category}
-        </span>
-        {/* 标题 */}
-        <h3 className="text-[17px] font-semibold text-white mb-3 group-hover:text-[#00d4ff] transition-colors font-mono leading-snug" style={{ transition: 'color 0.3s, text-shadow 0.3s' }}>
-          {title}
-        </h3>
-        {/* 摘要 */}
-        <p className="text-[13px] text-[#607080] leading-relaxed line-clamp-2">{excerpt}</p>
-      </div>
-      {/* 底部元信息 */}
-      <div className="flex justify-between items-center px-6 py-4 bg-[rgba(0,212,255,0.03)] border-t border-[rgba(0,212,255,0.15)]">
-        <div className="flex gap-5 text-[12px] text-[#405060] font-mono">
-          <span>📅 {date}</span>
-          <span>👁 {views}</span>
+    <Link href={`/blog/${slug}`}>
+      <article className="post-card">
+        {/* 顶部渐变线 */}
+        <div className="gradient-line-hover" />
+        {/* 内容区 */}
+        <div className="p-6">
+          {/* 分类标签 */}
+          <span className="tag-purple">{category}</span>
+          {/* 标题 */}
+          <h3 className="post-card-title">{title}</h3>
+          {/* 摘要 */}
+          <p className="post-card-excerpt">{excerpt}</p>
         </div>
-      </div>
-    </article>
+        {/* 底部元信息 */}
+        <div className="post-card-footer">
+          <div className="flex gap-5 meta-text">
+            <span>📅 {date}</span>
+            <span>👁 {views}</span>
+          </div>
+        </div>
+      </article>
+    </Link>
   )
 }
 
 export default async function HomePage() {
-  const [postCount, dailyLogCount] = await Promise.all([
-    prisma.post.count({ where: { status: 'PUBLISHED' } }),
-    prisma.dailyLog.count(),
+  const [postCount, dailyLogCount, recentPostsData] = await Promise.all([
+    prisma.posts.count({ where: { status: 'PUBLISHED' } }),
+    prisma.daily_logs.count(),
+    prisma.posts.findMany({
+      where: { status: 'PUBLISHED' },
+      take: 4,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        categories: true,
+        users: {
+          select: { name: true, username: true },
+        },
+      },
+    }),
   ])
+
+  // Transform to match expected format
+  const recentPosts = recentPostsData.map(post => ({
+    ...post,
+    category: post.categories,
+    author: post.users,
+  }))
 
   return (
     <div className="min-h-screen relative">
       <Particles />
-
-      <Sidebar />
+      <Sidebar postCount={postCount} dailyLogCount={dailyLogCount} />
 
       {/* 主内容 */}
       <main className="lg:ml-[280px] pt-[72px]">
         <div className="max-w-[1100px] mx-auto px-8 py-6">
-          {/* Hero - HUD 风格 */}
+          {/* Hero */}
           <section className="text-center py-8 relative">
             {/* HUD 角落装饰 */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-[1px] bg-gradient-to-r from-transparent via-[#00d4ff] to-transparent opacity-50" />
+            <div className="hero-line" />
 
-            {/* Badge 标签 - HUD 风格 */}
-            <div className="inline-flex items-center gap-3 px-6 py-3 bg-[rgba(0,10,20,0.8)] border border-[#00d4ff] rounded text-sm text-[#00d4ff] mb-6 relative" style={{ boxShadow: '0 0 20px rgba(0,212,255,0.3), inset 0 0 20px rgba(0,212,255,0.1)' }}>
-              <span className="w-2 h-2 rounded-full bg-[#00d4ff] animate-pulse" style={{ boxShadow: '0 0 10px #00d4ff' }} />
-              <span className="font-mono tracking-wider">AI AGENT 自动维护的开发日志系统</span>
+            {/* Badge 标签 */}
+            <div className="hero-badge">
+              <span className="hero-badge-dot" />
+              <span>AI AGENT 自动维护的开发日志系统</span>
             </div>
 
-            {/* 主标题 - Glitch 故障动画 */}
-            <h1 className="text-[72px] font-bold mb-4 leading-tight relative font-['Orbitron']">
+            {/* 主标题 */}
+            <h1 className="hero-title">
               <span className="neon-title-cyber inline-block">CYBER</span>
               <span className="neon-title-blog inline-block ml-4">BLOG</span>
             </h1>
 
-            {/* 副标题 - 全息文字 */}
-            <p className="text-base text-[#a8b8c8] max-w-xl mx-auto mb-6 leading-relaxed tracking-wide">
-              一个由 <span className="text-[#00d4ff]" style={{ textShadow: '0 0 10px rgba(0,212,255,0.5)' }}>AI Agent</span> 驱动的技术博客系统
+            {/* 副标题 */}
+            <p className="hero-subtitle">
+              一个由 <span className="text-accent">AI Agent</span> 驱动的技术博客系统
               <br />
-              <span className="text-[#607080]">自动记录开发进程 · 整理技术笔记 · 生成每日日报</span>
+              <span className="text-muted">自动记录开发进程 · 整理技术笔记 · 生成每日日报</span>
             </p>
 
-            {/* 操作按钮 - HUD 风格 */}
+            {/* 操作按钮 */}
             <div className="flex justify-center gap-4">
-              <button className="neon-btn px-8 py-3 rounded font-semibold text-sm tracking-wide">
+              <Link href="/blog" className="neon-btn px-8 py-3 rounded font-semibold text-sm tracking-wide">
                 📚 浏览文章
-              </button>
-              <button className="neon-btn px-8 py-3 rounded font-semibold text-sm tracking-wide border-[#bf5af2] text-[#bf5af2]" style={{ boxShadow: '0 0 10px rgba(191,90,242,0.3), inset 0 0 10px rgba(191,90,242,0.1)', textShadow: '0 0 10px rgba(191,90,242,0.5)' }}>
-                🔄 了解更多
-              </button>
+              </Link>
+              <Link href="/daily" className="neon-btn px-8 py-3 rounded font-semibold text-sm tracking-wide" style={{ borderColor: '#bf5af2', color: '#bf5af2' }}>
+                📅 每日日报
+              </Link>
             </div>
           </section>
 
           {/* 统计卡片 */}
           <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard icon="📄" value={postCount} label="文章总数" color="blue" />
-            <StatCard icon="📅" value={dailyLogCount} label="每日日报" color="green" />
-            <StatCard icon="⏱️" value={15} label="活跃天数" color="purple" />
-            <StatCard icon="👁️" value={2847} label="总阅读量" color="yellow" />
-          </section>
-
-          {/* 今日进度 */}
-          <section className="bg-[rgba(13,20,35,0.85)] border border-[rgba(0,212,255,0.15)] rounded-lg p-6 mb-8 relative overflow-hidden">
-            {/* 顶部渐变线 */}
-            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00d4ff] to-[#bf5af2] opacity-60" />
-            {/* 标题栏 */}
-            <div className="flex justify-between items-center mb-7 pb-5 border-b border-[rgba(0,212,255,0.1)]">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-3" style={{ textShadow: '0 0 15px rgba(255, 255, 255, 0.15)' }}>
-                <span className="w-1 h-7 bg-gradient-to-b from-[#00d4ff] to-[#bf5af2] rounded shadow-[0_0_10px_rgba(0,212,255,0.5)]" />
-                今日进度
-              </h2>
-              <span className="text-sm text-[#607080] flex items-center gap-2">
-                <span className="text-[#00d4ff]">📅</span>
-                {new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
-              </span>
-            </div>
-            {/* 任务列表 */}
-            <div className="space-y-3.5">
-              <TaskItem title="完成博客系统架构重构" desc="迁移至 Next.js 15 + TypeScript + Prisma" status="done" progress={100} />
-              <TaskItem title="实现用户认证功能" desc="集成 JWT 认证，支持注册登录" status="done" progress={100} />
-              <TaskItem title="前端性能优化" desc="SSR + ISR 混合渲染，首屏加载优化" status="in-progress" progress={65} />
-              <TaskItem title="部署至生产环境" desc="Docker 容器化 + 集群部署" status="todo" progress={20} />
-            </div>
+            <StatCard icon="📄" value={postCount} label="文章总数" color="blue" href="/blog" />
+            <StatCard icon="📅" value={dailyLogCount} label="每日日报" color="green" href="/daily" />
+            <StatCard icon="⏱️" value={1} label="活跃天数" color="purple" href="/dashboard" />
+            <StatCard icon="👁️" value={recentPosts.reduce((sum, p) => sum + p.viewCount, 0)} label="总阅读量" color="yellow" />
           </section>
 
           {/* 终端 */}
@@ -341,39 +280,51 @@ export default async function HomePage() {
           {/* 最新文章 */}
           <section>
             <div className="flex justify-between items-center mb-7">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-3" style={{ textShadow: '0 0 15px rgba(255, 255, 255, 0.15)' }}>
-                <span className="w-1 h-7 bg-gradient-to-b from-[#00d4ff] to-[#bf5af2] rounded shadow-[0_0_10px_rgba(0,212,255,0.5)]" />
+              <h2 className="progress-title">
+                <span className="progress-title-bar" />
                 最新文章
               </h2>
-              <Link href="/blog" className="text-sm text-[#00d4ff] hover:translate-x-1 transition-all flex items-center gap-1.5 group hover:text-[#4de8ff]">
+              <Link href="/blog" className="text-sm text-accent hover:translate-x-1 transition-all flex items-center gap-1.5 group hover:text-[var(--primary-light)]">
                 查看全部
                 <span className="group-hover:translate-x-1 transition-transform">→</span>
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
-              <PostCard title="Vue3 组合式 API 最佳实践指南" excerpt="深入探讨 Vue3 Composition API 在大型项目中的应用，包括响应式原理、组合式函数设计模式..." category="前端开发" date="2026-03-11" views={1234} />
-              <PostCard title="RAG 系统设计与实现详解" excerpt="从零构建企业级 RAG 检索增强生成系统，涵盖向量数据库选型、Embedding 优化..." category="AI / ML" date="2026-03-10" views={2156} />
-              <PostCard title="微服务架构演进之路" excerpt="从单体应用逐步演进到微服务架构的实践经验，分享服务拆分策略与治理方案..." category="后端架构" date="2026-03-09" views={1876} />
-              <PostCard title="Next.js 15 新特性深度解析" excerpt="详细介绍 Next.js 15 的 Turbopack、Server Actions、部分预渲染等核心特性..." category="前端开发" date="2026-03-08" views={3421} />
-            </div>
+            {recentPosts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
+                {recentPosts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    title={post.title}
+                    excerpt={post.excerpt || post.content.slice(0, 100) + '...'}
+                    category={post.category?.name || '未分类'}
+                    date={new Date(post.createdAt).toLocaleDateString('zh-CN')}
+                    views={post.viewCount}
+                    slug={post.slug}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-[var(--text-muted)]">
+                <p>暂无文章，敬请期待...</p>
+              </div>
+            )}
           </section>
         </div>
       </main>
 
       {/* 页脚 */}
-      <footer className="lg:ml-[280px] border-t border-[rgba(0,212,255,0.1)] py-12 text-center relative">
+      <footer className="lg:ml-[280px] border-t py-12 text-center relative footer">
         {/* 顶部渐变线 */}
-        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00d4ff] to-[#bf5af2] opacity-40" />
+        <div className="gradient-line-footer" />
         {/* 链接区 */}
         <div className="flex justify-center gap-12 mb-6">
-          <Link href="#" className="text-sm text-[#a8b8c8] hover:text-[#00d4ff] hover:shadow-[0_0_15px_rgba(0,212,255,0.4)] transition-all">GitHub</Link>
-          <Link href="#" className="text-sm text-[#a8b8c8] hover:text-[#00d4ff] hover:shadow-[0_0_15px_rgba(0,212,255,0.4)] transition-all">API 文档</Link>
-          <Link href="#" className="text-sm text-[#a8b8c8] hover:text-[#00d4ff] hover:shadow-[0_0_15px_rgba(0,212,255,0.4)] transition-all">RSS 订阅</Link>
-          <Link href="#" className="text-sm text-[#a8b8c8] hover:text-[#00d4ff] hover:shadow-[0_0_15px_rgba(0,212,255,0.4)] transition-all">关于我们</Link>
+          <Link href="https://github.com" className="footer-link" target="_blank">GitHub</Link>
+          <Link href="/blog" className="footer-link">博客文章</Link>
+          <Link href="/daily" className="footer-link">每日日报</Link>
         </div>
         {/* 版权信息 */}
-        <p className="text-[13px] text-[#607080]">
+        <p className="text-sm text-muted">
           CyberBlog v2.0 | Powered by AI Agent | © 2026
         </p>
       </footer>

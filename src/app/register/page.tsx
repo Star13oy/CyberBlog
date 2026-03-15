@@ -25,6 +25,16 @@ export default function RegisterPage() {
       return
     }
 
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+      setError('密码必须包含大小写字母和数字')
+      return
+    }
+
+    if (username.length < 3 || username.length > 20) {
+      setError('用户名需要3-20个字符')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -49,29 +59,27 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-5">
-      <div className="w-full max-w-md">
+    <div className="page-container flex items-center justify-center px-5">
+      <div className="form-container w-full">
         {/* Logo */}
-        <Link href="/" className="flex items-center justify-center gap-3 text-2xl font-bold text-white mb-10">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00d4ff] to-[#bf5af2] flex items-center justify-center text-2xl shadow-[0_0_20px_rgba(0,212,255,0.4)]">
-            🤖
-          </div>
-          <span>Cyber<span className="text-[#00d4ff]">Blog</span></span>
+        <Link href="/" className="flex items-center justify-center gap-3 mb-10">
+          <div className="logo-icon">🤖</div>
+          <span className="logo-text">
+            Cyber<span className="logo-highlight">Blog</span>
+          </span>
         </Link>
 
         {/* 注册表单 */}
-        <div className="cyber-card p-8">
-          <h1 className="text-2xl font-bold text-white mb-6 text-center">注册</h1>
+        <div className="form-card">
+          <h1 className="form-title">注册</h1>
 
           {error && (
-            <div className="mb-4 p-3 bg-[rgba(255,69,58,0.1)] border border-[rgba(255,69,58,0.3)] rounded-lg text-sm text-[#ff453a]">
-              {error}
-            </div>
+            <div className="form-error">{error}</div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm text-[#a8b8c8] mb-2">邮箱</label>
+              <label className="form-label">邮箱</label>
               <input
                 type="email"
                 value={email}
@@ -83,13 +91,13 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm text-[#a8b8c8] mb-2">用户名</label>
+              <label className="form-label">用户名</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="cyber-input"
-                placeholder="username"
+                placeholder="3-20个字符"
                 minLength={3}
                 maxLength={20}
                 required
@@ -97,7 +105,10 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm text-[#a8b8c8] mb-2">密码</label>
+              <label className="form-label">
+                密码
+                <span className="text-muted text-xs ml-2">（需包含大小写字母和数字）</span>
+              </label>
               <input
                 type="password"
                 value={password}
@@ -110,7 +121,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-sm text-[#a8b8c8] mb-2">确认密码</label>
+              <label className="form-label">确认密码</label>
               <input
                 type="password"
                 value={confirmPassword}
@@ -130,9 +141,9 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-[#607080]">
+          <div className="form-footer">
             已有账户？{' '}
-            <Link href="/login" className="text-[#00d4ff] hover:underline">
+            <Link href="/login" className="form-link">
               登录
             </Link>
           </div>
