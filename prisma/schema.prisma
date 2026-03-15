@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -23,7 +23,7 @@ model categories {
 
 model comments {
   id             String     @id
-  content        String     @db.Text
+  content        String
   postId         String
   authorId       String
   parentId       String?
@@ -34,8 +34,8 @@ model comments {
   other_comments comments[] @relation("commentsTocomments")
   posts          posts      @relation(fields: [postId], references: [id], onDelete: Cascade)
 
-  @@index([authorId], map: "comments_authorId_fkey")
-  @@index([parentId], map: "comments_parentId_fkey")
+  @@index([authorId])
+  @@index([parentId])
   @@index([postId])
 }
 
@@ -43,7 +43,7 @@ model daily_logs {
   id          String   @id
   date        DateTime @db.Date
   title       String?
-  content     String   @db.Text
+  content     String
   aiGenerated Boolean  @default(false)
   authorId    String
   createdAt   DateTime @default(now())
@@ -52,7 +52,7 @@ model daily_logs {
   tasks       tasks[]
 
   @@unique([date, authorId])
-  @@index([authorId], map: "daily_logs_authorId_fkey")
+  @@index([authorId])
   @@index([date])
 }
 
@@ -60,7 +60,7 @@ model posts {
   id           String       @id
   title        String       @db.VarChar(200)
   slug         String       @unique
-  content      String       @db.LongText
+  content      String
   excerpt      String?      @db.VarChar(500)
   coverImage   String?
   categoryId   String?
@@ -71,7 +71,7 @@ model posts {
   isFeatured   Boolean      @default(false)
   publishedAt  DateTime?
   aiGenerated  Boolean      @default(false)
-  aiSummary    String?      @db.Text
+  aiSummary    String?
   authorId     String
   createdAt    DateTime     @default(now())
   updatedAt    DateTime
@@ -80,7 +80,7 @@ model posts {
   categories   categories?  @relation(fields: [categoryId], references: [id])
   tags         tags[]       @relation("posttotag")
 
-  @@index([authorId], map: "posts_authorId_fkey")
+  @@index([authorId])
   @@index([categoryId])
   @@index([publishedAt])
   @@index([slug])
@@ -90,7 +90,7 @@ model posts {
 model settings {
   id          String   @id
   key         String   @unique
-  value       String   @db.Text
+  value       String
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime
@@ -134,7 +134,7 @@ model tasks {
   updatedAt   DateTime
   daily_logs  daily_logs   @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
 
-  @@index([dailyLogId], map: "tasks_dailyLogId_fkey")
+  @@index([dailyLogId])
   @@index([status])
 }
 

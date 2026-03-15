@@ -180,21 +180,33 @@
   },
   "hotPaths": [
     {
+      "path": "prisma/schema.prisma",
+      "accessCount": 8,
+      "lastAccessed": 1773554743880,
+      "type": "file"
+    },
+    {
       "path": "",
-      "accessCount": 2,
-      "lastAccessed": 1773452964269,
+      "accessCount": 3,
+      "lastAccessed": 1773555706438,
       "type": "directory"
+    },
+    {
+      "path": "package.json",
+      "accessCount": 2,
+      "lastAccessed": 1773554548599,
+      "type": "file"
+    },
+    {
+      "path": "docker-compose.yml",
+      "accessCount": 2,
+      "lastAccessed": 1773554615534,
+      "type": "file"
     },
     {
       "path": "README.md",
       "accessCount": 1,
       "lastAccessed": 1773452963771,
-      "type": "file"
-    },
-    {
-      "path": "package.json",
-      "accessCount": 1,
-      "lastAccessed": 1773452964172,
       "type": "file"
     },
     {
@@ -214,7 +226,52 @@
       "accessCount": 1,
       "lastAccessed": 1773453020741,
       "type": "file"
+    },
+    {
+      "path": ".env",
+      "accessCount": 1,
+      "lastAccessed": 1773554560817,
+      "type": "file"
+    },
+    {
+      "path": "src",
+      "accessCount": 1,
+      "lastAccessed": 1773554560836,
+      "type": "directory"
+    },
+    {
+      "path": "src/app/api/posts/route.ts",
+      "accessCount": 1,
+      "lastAccessed": 1773554982646,
+      "type": "file"
+    },
+    {
+      "path": ".claude/hooks/daily-report.sh",
+      "accessCount": 1,
+      "lastAccessed": 1773555380868,
+      "type": "file"
+    },
+    {
+      "path": ".claude/settings.local.json",
+      "accessCount": 1,
+      "lastAccessed": 1773555416238,
+      "type": "file"
     }
   ],
-  "userDirectives": []
+  "userDirectives": [
+    {
+      "timestamp": 1773555849578,
+      "directive": "当用户说\"今日工作已结束\"、\"下班\"、\"收工\"等词汇时，自动生成今日日报并发布到系统。执行流程：1) 收集Git提交和今日完成的任务 2) 汇总生成日报内容 3) 调用 POST /api/daily-logs 发布日报",
+      "context": "当用户说\"今日工作已结束\"、\"下班\"等词汇时",
+      "source": "explicit",
+      "priority": "high"
+    },
+    {
+      "timestamp": 1773556000712,
+      "directive": "文档先行原则：在修改任何代码之前，必须先更新相关文档。包括但不限于：README.md、API文档、代码注释、CLAUDE.md等。确保文档与代码同步，先写文档再写代码。",
+      "context": "所有代码改动任务",
+      "source": "explicit",
+      "priority": "high"
+    }
+  ]
 }
