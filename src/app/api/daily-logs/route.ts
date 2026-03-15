@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// 生成唯一 ID
+function generateId(): string {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+}
+
 // 获取日报列表
 export async function GET(request: NextRequest) {
   try {
@@ -78,18 +83,22 @@ export async function POST(request: NextRequest) {
 
     const dailyLogData = await prisma.daily_logs.create({
       data: {
+        id: generateId(),
         date: new Date(date),
         title,
         content,
         aiGenerated: aiGenerated || false,
         authorId: authorId || 'default-user',
+        updatedAt: new Date(),
         tasks: tasks
           ? {
               create: tasks.map((task: { title: string; description?: string; status?: string; progress?: number }) => ({
+                id: generateId(),
                 title: task.title,
                 description: task.description,
                 status: task.status || 'TODO',
                 progress: task.progress || 0,
+                updatedAt: new Date(),
               })),
             }
           : undefined,
